@@ -1,35 +1,19 @@
--- ============================
--- UNICIDAD (insensible a mayúsculas)
--- ============================
-create unique index if not exists profiles_email_unique_ci
-  on public.profiles ((lower(email)));
+-- === Extensiones, ajustes de esquema e índices ===
 
-create unique index if not exists profiles_name_unique_ci
-  on public.profiles ((lower(name)));
+-- 1) Extensión para búsquedas
+create extension if not exists pg_trgm;
 
-create unique index if not exists profiles_username_unique_ci
-  on public.profiles ((lower(username)));
+-- 2) Asegurar columna category_slug en public.tags (por si la tabla ya existía)
+alter table public.tags
+  add column if not exists category_slug text references public.categories(slug) on delete set null;
 
--- (Opcional) Asegurar formato slug en username
-alter table public.profiles
-  add constraint profiles_username_slug_chk
-  check (username ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$');
+-- 3) Índices de perfiles (búsqueda y filtros)
+create index if not exists idx_profiles_tsv         on public.profiles using gin (search_tsv);
+create index if not exists idx_profiles_name_trgm   on public.profiles using gin (name gin_trgm_ops);
+create index if not exists idx_profiles_country     on public.profiles (country);
+create index if not exists idx_profiles_region      on public.profiles (region);
 
--- ============================
--- ÍNDICES de rendimiento
--- ============================
--- Búsqueda por prefijo / ILIKE rápido
-create index if not exists profiles_name_trgm
-  on public.profiles using gin (name gin_trgm_ops);
-
--- Filtros por sector (contains/AND)
-create index if not exists profiles_sectors_gin
-  on public.profiles using gin (sectors);
-
--- Filtros por país y provincia
-create index if not exists profiles_country_idx on public.profiles (country);
-create index if not exists profiles_region_idx  on public.profiles (region);
-
--- Proyectos por perfil y año desc
-create index if not exists projects_profile_id_idx on public.projects (profile_id);
-create index if not exists projects_year_idx       on public.projects (year);
+-- 4) Índices de categorías y tags
+create index if not exists idx_categories_slug on public.categories(slug);
+create index if not exists idx_tags_slug       on public.tags(slug);
+create index if not exists idx_tags_category   on public.tags(category_slug);
