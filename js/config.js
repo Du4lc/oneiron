@@ -1,6 +1,6 @@
 export const CONFIG = {
-  SUPABASE_URL: "",          // p.ej. https://xxxx.supabase.co
-  SUPABASE_ANON_KEY: "",     // API Key anon
+  SUPABASE_URL: "https://sceylguujzjfjpmeodxt.supabase.co",          // p.ej. https://xxxx.supabase.co
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjZXlsZ3V1anpqZmpwbWVvZHh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUzMzQxODAsImV4cCI6MjA3MDkxMDE4MH0.GPAT4mpTSobe-vrEEFb4PCS_7uXZC6dVkO_XGW26W8Y",     // API Key anon
 };
 
 let supabaseClient = null;
