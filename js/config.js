@@ -1,32 +1,32 @@
-// Config y helpers (ESM)
-export const SUPABASE_URL = "https://sceylguujzjfjpmeodxt.supabase.co";
-export const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9....CI6MjA3MDkxMDE4MH0.GPAT4mpTSobe-vrEEFb4PCS_7uXZC6dVkO_XGW26W8Y";
+export const CONFIG = {
+  SUPABASE_URL: "https://sceylguujzjfjpmeodxt.supabase.co",          // p.ej. https://xxxx.supabase.co
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjZXlsZ3V1anpqZmpwbWVvZHh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUzMzQxODAsImV4cCI6MjA3MDkxMDE4MH0.GPAT4mpTSobe-vrEEFb4PCS_7uXZC6dVkO_XGW26W8Y",     // API Key anon
+};
 
 let supabaseClient = null;
-export function getSupabaseClient(){
-  if (!supabaseClient) {
-    if (!window.supabase) {
-      console.warn('supabase-js aún no cargado');
-      return null;
-    }
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  }
+let session = null;
+
+export async function initSupabase(){
+  if (!CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_ANON_KEY || !window.supabase) return null;
+  supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+  const { data: { session: s } } = await supabaseClient.auth.getSession();
+  session = s;
+  supabaseClient.auth.onAuthStateChange((_evt, sess)=>{
+    session = sess;
+    window.dispatchEvent(new CustomEvent('auth-changed'));
+  });
   return supabaseClient;
 }
+export function getSupabaseClient(){ return supabaseClient; }
+export function getSession(){ return session; }
 
-// Países disponibles
-export const COUNTRIES = [
-  "España","Portugal","Francia","Italia","Alemania","Reino Unido","Estados Unidos","Canadá"
+/* Países / Provincias (solo España por ahora) */
+export const COUNTRIES = ["España"];
+export const ES_PROVINCES = [
+  "Álava","Albacete","Alicante","Almería","Asturias","Ávila","Badajoz","Barcelona","Burgos",
+  "Cáceres","Cádiz","Cantabria","Castellón","Ciudad Real","Córdoba","A Coruña","Cuenca","Girona",
+  "Granada","Guadalajara","Guipúzcoa","Huelva","Huesca","Islas Baleares","Jaén","León","Lleida",
+  "Lugo","Madrid","Málaga","Murcia","Navarra","Ourense","Palencia","Las Palmas","Pontevedra",
+  "La Rioja","Salamanca","Santa Cruz de Tenerife","Segovia","Sevilla","Soria","Tarragona","Teruel",
+  "Toledo","Valencia","Valladolid","Vizcaya","Zamora","Zaragoza","Ceuta","Melilla"
 ];
-
-// Provincias / Estados por país
-export const REGIONS_BY_COUNTRY = {
-  "España": ["Madrid","Barcelona","Valencia","Sevilla","Málaga","Zaragoza","Murcia","Alicante","Cádiz","Granada","Toledo","Salamanca","Valladolid","Badajoz","A Coruña","Asturias","Cantabria","Navarra","La Rioja","Álava","Guipúzcoa","Vizcaya","Ceuta","Melilla"],
-  "Portugal": ["Lisboa","Porto","Braga","Aveiro","Coímbra","Faro","Setúbal","Madeira","Azores"],
-  "Francia": ["Île-de-France","Occitanie","Nouvelle-Aquitaine","Provence-Alpes-Côte d'Azur","Auvergne-Rhône-Alpes","Hauts-de-France","Normandie","Bretagne","Pays de la Loire"],
-  "Italia": ["Lombardia","Lazio","Campania","Sicilia","Piemonte","Veneto","Emilia-Romagna","Toscana","Puglia","Sardegna"],
-  "Alemania": ["Baviera","Berlín","Hamburgo","Baden-Württemberg","Renania del Norte-Westfalia","Hesse","Sajonia","Baja Sajonia","Brandeburgo","Turingia"],
-  "Reino Unido": ["England","Scotland","Wales","Northern Ireland"],
-  "Estados Unidos": ["California","Texas","New York","Florida","Illinois","Pennsylvania","Ohio","Georgia","North Carolina","Michigan","Washington","Arizona"],
-  "Canadá": ["Ontario","Quebec","British Columbia","Alberta","Manitoba","Saskatchewan","Nova Scotia","New Brunswick","Newfoundland and Labrador","Prince Edward Island"]
-};

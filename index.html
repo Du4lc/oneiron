@@ -1,41 +1,73 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Oneiron — Empresas</title>
+  <title>Oneiron</title>
+  <!-- Tailwind (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <link rel="stylesheet" href="./styles.css" />
-  <!-- Supabase CDN (necesario para config.js) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <style>
+    :root {
+      --oneiron-accent: #0f172a;
+      --oneiron-accent-2: #4f46e5;
+      --oneiron-bg: #f8fafc;
+    }
+    body { background: var(--oneiron-bg); }
+    .banner {
+      background:
+        radial-gradient(60% 60% at 50% 40%, rgba(79,70,229,.15), transparent 60%),
+        radial-gradient(30% 30% at 70% 10%, rgba(15,23,42,.12), transparent 60%),
+        linear-gradient(135deg,#e2e8f0,#f8fafc);
+    }
+    .watermark { position:relative; isolation:isolate; }
+    .watermark::after {
+      content:""; position:absolute; inset:0; z-index:-1; opacity:.04;
+      background: center/160px no-repeat url('./assets/oneiron.png');
+    }
+  </style>
 </head>
-<body>
-  <header class="banner">
-    <h1>Oneiron</h1>
+<body class="text-slate-900">
+  <!-- Banner -->
+  <header class="banner py-10 border-b">
+    <div class="max-w-7xl mx-auto px-4 relative">
+      <div class="absolute right-4 top-4 flex items-center gap-2">
+        <button id="loginBtn" class="btn btn-ghost">Iniciar sesión</button>
+        <button id="signupBtn" class="btn btn-ghost">Crear cuenta</button>
+        <a id="myAccountBtn" href="#/account" class="btn btn-primary hidden">MI CUENTA</a>
+      </div>
+      <div class="flex justify-center">
+        <img src="./assets/oneiron.png" alt="Oneiron Logo" class="h-36 md:h-44 w-auto" />
+      </div>
+    </div>
   </header>
 
-  <main>
-    <!-- Filtros de sectores -->
-    <section id="filters" class="filters">
-      <div>
-        <label for="cat">Categoría</label>
-        <select id="cat" data-filter="category" class="select"></select>
-      </div>
-      <div>
-        <label>Etiquetas (sectores)</label>
-        <div data-filter="tags" class="tags"></div>
-      </div>
-    </section>
+  <!-- ROOT -->
+  <main id="app" class="max-w-7xl mx-auto px-4 py-6"></main>
 
-    <section id="results">
-      <!-- aquí irán resultados en el futuro -->
-    </section>
-  </main>
+  <!-- MODALS -->
+  <dialog id="loginModal" class="p-0 rounded-2xl w-full max-w-md">
+    <form method="dialog" class="card">
+      <h2 class="text-xl font-semibold mb-4">Iniciar sesión</h2>
+      <label class="block mb-2 text-sm">Email</label>
+      <input id="loginEmail" type="email" class="input mb-3" placeholder="tu@email.com" required />
+      <label class="block mb-2 text-sm">Contraseña</label>
+      <input id="loginPassword" type="password" class="input mb-4" placeholder="••••••••" required />
+      <div class="flex justify-end gap-2">
+        <button class="btn btn-ghost">Cancelar</button>
+        <button id="loginSubmit" class="btn btn-primary" type="button">Entrar</button>
+      </div>
+    </form>
+  </dialog>
 
-  <script type="module">
-    import { initSectorFilters } from './js/ui.js';
-    window.addEventListener('DOMContentLoaded', () => {
-      initSectorFilters();
-    });
-  </script>
+  <dialog id="signupModal" class="p-0 rounded-2xl w-full max-w-2xl"></dialog>
+  <dialog id="editModal" class="p-0 rounded-2xl w-full max-w-2xl"></dialog>
+  <dialog id="projectModal" class="p-0 rounded-2xl w-full max-w-3xl"></dialog>
+
+  <!-- App -->
+  <script type="module" src="./js/app.js"></script>
 </body>
 </html>
