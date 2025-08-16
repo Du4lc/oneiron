@@ -1,17 +1,41 @@
-      <!-- Filtros de sectores -->
-      <section id="filters" class="filters">
-        <div>
-          <label>Categoría</label>
-          <select data-filter="category"></select>
-        </div>
-        <div>
-          <label>Etiquetas (sectores)</label>
-          <div data-filter="tags" class="tags"></div>
-        </div>
-      </section>
-      <script type="module">
-        import { initSectorFilters } from './js/ui.js';
-        initSectorFilters();
-      </script>
-    </body>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Oneiron — Empresas</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <!-- Supabase CDN (necesario para config.js) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+</head>
+<body>
+  <header class="banner">
+    <h1>Oneiron</h1>
+  </header>
+
+  <main>
+    <!-- Filtros de sectores -->
+    <section id="filters" class="filters">
+      <div>
+        <label for="cat">Categoría</label>
+        <select id="cat" data-filter="category" class="select"></select>
+      </div>
+      <div>
+        <label>Etiquetas (sectores)</label>
+        <div data-filter="tags" class="tags"></div>
+      </div>
+    </section>
+
+    <section id="results">
+      <!-- aquí irán resultados en el futuro -->
+    </section>
+  </main>
+
+  <script type="module">
+    import { initSectorFilters } from './js/ui.js';
+    window.addEventListener('DOMContentLoaded', () => {
+      initSectorFilters();
+    });
+  </script>
+</body>
 </html>
