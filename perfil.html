@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ONEIRON — Perfil de empresa</title>
+  <style>
+    :root{
+      --bg:#f9fafb; --card:#ffffffee; --glass:#ffffffb8; --soft:#f3f4f680; --stroke:#d1d5db80; --text:#0f172a; --muted:#6b7280;
+      --accent:#4f46e5; --accent-2:#2563eb; --accent-3:#06b6d4; --radius:16px; --shadow-xl: 0 10px 30px rgba(20, 24, 60, .12), 0 2px 8px rgba(20,24,60,.08); --ring: 0 0 0 6px rgba(79,70,229,.18);
+      --ok:#16a34a; --err:#ef4444;
+      --sidebar-w: 260px;
+      --gap: 18px;
+      --banner-h: 260px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color:var(--text); background:var(--bg); -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; overflow-x:hidden;
+    }
+
+    /* fondo onírico */
+    .dream-bg{ position:fixed; inset:0; z-index:-3; overflow:hidden;
+      background:
+        radial-gradient(1200px 520px at 50% -5%, color-mix(in oklab, var(--accent) 22%, transparent), transparent 60%),
+        radial-gradient(900px 380px at 15% 100%, color-mix(in oklab, var(--accent-2) 22%, transparent), transparent 60%),
+        radial-gradient(700px 300px at 85% 90%, color-mix(in oklab, var(--accent-3) 18%, transparent), transparent 60%),
+        linear-gradient(#f9fbff, #f8fafc 60%, #f9fafb);
+    }
+    .stars,.grain{position:absolute; inset:0; pointer-events:none}
+    .stars{ background-image:
+      radial-gradient(1px 1px at 10% 20%, rgba(38,38,80,.6) 40%, transparent 41%),
+      radial-gradient(1px 1px at 30% 70%, rgba(38,38,80,.5) 40%, transparent 41%),
+      radial-gradient(1px 1px at 60% 30%, rgba(38,38,80,.55) 40%, transparent 41%),
+      radial-gradient(1.2px 1.2px at 80% 60%, rgba(38,38,80,.45) 40%, transparent 41%),
+      radial-gradient(0.9px 0.9px at 50% 85%, rgba(38,38,80,.45) 40%, transparent 41%);
+      background-repeat:no-repeat; filter:blur(.2px); opacity:.55; }
+    .grain{ mix-blend-mode:soft-light; opacity:.35;
+      background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/></filter><rect width="160" height="160" filter="url(%23n)" opacity="0.08"/></svg>');
+      background-size:160px 160px; }
+    .orb{position:absolute; filter:blur(24px); opacity:.35; border-radius:999px; will-change:transform;}
+    .orb.one{width:380px; height:380px; left:-80px; top:10vh; background:radial-gradient(circle at 30% 30%, #93c5fd, transparent 60%)}
+    .orb.two{width:420px; height:420px; right:-120px; top:45vh; background:radial-gradient(circle at 70% 40%, #a5b4fc, transparent 60%)}
+    .orb.three{width:300px; height:300px; left:55vw; top:-120px; background:radial-gradient(circle at 30% 70%, #67e8f9, transparent 60%)}
+    @keyframes drift{0%{transform:translate3d(0,0,0) rotate(0)}50%{transform:translate3d(0,12px,0) rotate(1deg)}100%{transform:translate3d(0,0,0) rotate(0)}}
+    .orb{animation:drift 11s ease-in-out infinite}
+
+    /* Layout general */
+    .layout{ margin:0; padding:0 22px 80px; }
+
+    /* Sidebar: pegada a la izquierda y empieza debajo del banner */
+    .sidebar{
+      position:fixed;
+      top: var(--banner-h);
+      left:0;
+      width:var(--sidebar-w);
+      height: calc(100vh - var(--banner-h));
+      overflow:auto; scrollbar-gutter:stable;
+      border:1px solid var(--stroke); border-left:0; border-radius:0 20px 20px 0;
+      background:linear-gradient(180deg, var(--card), var(--soft)); box-shadow:var(--shadow-xl); padding:12px; z-index:9;
+    }
+    .side-title{ font-size:.9rem; color:var(--muted); margin:6px 8px; }
+    .side-nav{ display:grid; gap:8px; }
+    .side-nav a,
+    .side-nav .btn-link{
+      display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:12px; text-decoration:none; color:var(--text);
+      border:1px solid var(--stroke); background:#fff;
+    }
+    .side-nav a:hover, .side-nav .btn-link:hover{ box-shadow:0 10px 18px rgba(79,70,229,.10) }
+
+    /* Botón Inicio destacado (índigo) */
+    .side-nav .btn-primary{
+      background:linear-gradient(135deg, #4f46e5, #4338ca);
+      color:#fff; border-color:transparent; font-weight:700;
+    }
+    .side-nav .btn-primary:hover{ box-shadow:0 10px 22px rgba(79,70,229,.25) }
+
+    /* Panel de contenido: comienza justo debajo del banner y a la derecha del índice */
+    .panel{
+      display:grid; gap:16px;
+      margin-left: calc(var(--sidebar-w) + var(--gap));
+      margin-top: var(--banner-h); /* sin banda blanca extra */
+      max-width: 1200px;
+    }
+
+    .card{ border:1px solid var(--stroke); background:linear-gradient(180deg, var(--card), var(--soft)); border-radius:20px; box-shadow:var(--shadow-xl); overflow:hidden; }
+    .section-hd{ display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-bottom:1px solid var(--stroke); }
+    .section-hd h2{ margin:0; font-size:1.05rem; letter-spacing:.2px }
+    .section-bd{ padding:14px; }
+
+    /* Banner fijo en la parte superior de la pantalla */
+    #sec-banner{ height:0; margin:0; }                 /* no ocupa espacio en el flujo */
+    #sec-banner .section-bd{ padding:0; height:0; }    /* elimina relleno para que no se vea franja */
+    #sec-banner .card{ background:transparent; border:0; box-shadow:none; }
+    .banner-wrap{
+      position:fixed; top:0; left:0; width:100vw; height:var(--banner-h);
+      background:linear-gradient(135deg, rgba(79,70,229,.35), rgba(37,99,235,.30));
+      border-radius:0; display:grid; place-items:center; z-index:8;
+    }
+    .banner{ position:absolute; inset:0; background-size:cover; background-position:center; filter:saturate(1) contrast(1); }
+    .banner-overlay{ position:absolute; inset:0; background:radial-gradient(800px 300px at 50% 0%, rgba(255,255,255,.18), transparent 60%), linear-gradient(to bottom, rgba(255,255,255,.15), rgba(255,255,255,.02)); pointer-events:none }
+    .logo-on-banner{ position:absolute; inset:0; display:grid; place-items:center; }
+    .logo-on-banner img{ width:140px; height:140px; object-fit:contain; border-radius:24px; background:#fff; padding:12px; box-shadow:0 12px 30px rgba(15,23,42,.22) }
+
+    .uploader {
+      position: absolute;
+      right: 28px; /* más separación del borde */
+      bottom: 18px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .upl {
+      border: 1px solid var(--stroke);
+      background: linear-gradient(135deg, rgba(79,70,229,.95), rgba(37,99,235,.95));
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      box-shadow: 0 6px 18px rgba(79,70,229,.22);
+      transition: box-shadow .2s, transform .2s;
+    }
+
+    .upl:hover {
+      box-shadow: 0 10px 24px rgba(79,70,229,.28);
+      transform: translateY(-2px);
+    }
+
+    .upl input {
+      display: none;
+    }
+
+    /* Variante clara para "Restablecer" */
+    #reset-media.upl {
+      background: #fff;
+      color: var(--text);
+      border: 1px solid var(--stroke);
+    }
+    #reset-media.upl:hover {
+      box-shadow: 0 8px 18px rgba(15,23,42,.12);
+    }
+
+    .row{ display:grid; gap:10px; margin:10px 0 }
+    .label{ font-size:.92rem; color:var(--muted) }
+    .input, select, textarea, button{ border:1px solid var(--stroke); background:linear-gradient(180deg, #fff, #f8fafc); color:var(--text); padding:12px 14px; border-radius:var(--radius); outline:none; transition:border-color .15s, box-shadow .2s; box-shadow:0 1px 0 rgba(0,0,0,.02) inset, 0 6px 14px rgba(15,23,42,.06); }
+    .input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible{ border-color:var(--accent); box-shadow:var(--ring) }
+    textarea{ min-height:120px; resize:vertical; }
+
+    .toolbar{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+    .tags-btn{ display:inline-flex; align-items:center; gap:8px; cursor:pointer; user-select:none; background:linear-gradient(135deg, rgba(79,70,229,.08), rgba(37,99,235,.08)); height:42px }
+
+    .chosen-row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center }
+    .chip{ display:inline-flex; align-items:center; gap:8px; border:1px solid var(--stroke); background:linear-gradient(180deg, #fff, #f8fafc); padding:6px 10px; border-radius:999px; font-size:.9rem; }
+    .chip .x{ border:0; background:transparent; padding:2px; cursor:pointer; line-height:0; display:grid; place-items:center; }
+
+    .row-2{ display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px }
+
+    .actions-row{ display:flex; justify-content:flex-end; gap:10px; margin-top:6px }
+    .btn{ border:1px solid var(--stroke); background:linear-gradient(135deg, rgba(79,70,229,.95), rgba(37,99,235,.95)); color:#fff; padding:12px 16px; border-radius:14px; font-weight:700; cursor:pointer; box-shadow:0 8px 20px rgba(79,70,229,.22) }
+    .ghost{ background:#fff; color:var(--text); font-weight:600 }
+
+    /* Drawer etiquetas */
+    .drawer-overlay{ position:fixed; inset:0; background:radial-gradient(1200px 700px at 20% 50%, rgba(79,70,229,.12), transparent 60%), rgba(2,6,23,.28);
+      backdrop-filter: blur(3px); opacity:0; pointer-events:none; transition:opacity .25s ease; z-index:20; }
+    .drawer{ position:fixed; top:0; left:0; height:100dvh; width:clamp(320px, 33.33vw, 520px); transform:translateX(-102%);
+      transition: transform .32s cubic-bezier(.2,.8,.2,1); z-index:21; display:flex; flex-direction:column;
+      border-right:1px solid var(--stroke); background:linear-gradient(180deg, var(--card), var(--soft)); box-shadow:var(--shadow-xl); }
+    .drawer.open{ transform:translateX(0); }
+    .drawer-overlay.open{ opacity:1; pointer-events:auto; }
+    .drawer .hd{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px; position:relative; }
+    .drawer .hd h2{ font-size:1.05rem; margin:0; letter-spacing:.3px; }
+    .drawer .close{ border:1px solid var(--stroke); background:var(--card); border-radius:12px; padding:8px; cursor:pointer; }
+    .drawer .content{ padding:12px 12px 18px 12px; overflow:auto; scrollbar-gutter:stable; }
+    .picker{ display:grid; grid-template-columns:1fr; gap:12px; }
+    .picker label{ display:grid; gap:6px; font-size:.9rem; color:var(--muted); }
+    .picker .actions{ display:flex; gap:8px; align-items:center; }
+    .picker .add{ background:linear-gradient(135deg, rgba(79,70,229,.95), rgba(37,99,235,.95)); color:#fff; border:0; border-radius:12px; padding:10px 14px; cursor:pointer; box-shadow:0 8px 20px rgba(79,70,229,.22); }
+    .drawer .ft{ margin:8px 0 12px; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:0 12px; }
+    .ft .summary{ font-size:.9rem; color:var(--muted); }
+    .ft .clear{ border:1px solid var(--stroke); background:#fff; border-radius:12px; padding:10px 12px; cursor:pointer; }
+
+    @media (prefers-reduced-motion: reduce){ .orb{animation:none} }
+  </style>
+</head>
+<body>
+  <div class="dream-bg" aria-hidden="true">
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+    <div class="orb three"></div>
+    <div class="stars"></div>
+    <div class="grain"></div>
+  </div>
+
+  <!-- Drawer etiquetas -->
+  <div id="drawer-overlay" class="drawer-overlay" aria-hidden="true"></div>
+  <aside id="tags-drawer" class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" aria-hidden="true">
+    <div class="hd">
+      <h2 id="drawer-title">Etiquetas por sector</h2>
+      <button class="close" id="drawer-close" aria-label="Cerrar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="content">
+      <div class="picker" aria-label="Selector de etiquetas">
+        <label>Sector
+          <select id="sector-select">
+            <option value="" selected disabled>elige un sector…</option>
+          </select>
+        </label>
+        <label>Subsector
+          <select id="subsector-select" disabled>
+            <option value="" selected>elige un subsector…</option>
+          </select>
+        </label>
+        <div class="actions">
+          <button id="add-chip" class="add" type="button">Añadir etiqueta</button>
+          <button id="drawer-clear" class="clear" type="button">Limpiar seleccionadas</button>
+        </div>
+      </div>
+    </div>
+    <div class="ft">
+      <span class="summary" id="drawer-summary">0 etiquetas seleccionadas</span>
+    </div>
+  </aside>
+
+  <!-- Índice lateral + botón Inicio (índigo, sin emoticono) -->
+  <aside class="sidebar" aria-label="Índice de edición">
+    <div class="side-title">Navegación</div>
+    <nav class="side-nav">
+      <a class="btn-link btn-primary" href="./index.html" title="Volver al inicio">Inicio</a>
+      <a href="#sec-nombre">Nombre</a>
+      <a href="#sec-desc">Descripción</a>
+      <a href="#sec-tags">Etiquetas</a>
+      <a href="#sec-local">Localización</a>
+    </nav>
+  </aside>
+
+  <main class="layout">
+    <section class="panel">
+
+      <!-- Banner fijo arriba del todo -->
+      <article class="card" id="sec-banner" aria-label="Banner y logotipo">
+        <div class="section-bd">
+          <div class="banner-wrap" id="banner-wrap">
+            <div class="banner" id="banner" role="img" aria-label="Imagen de cabecera"></div>
+            <div class="banner-overlay"></div>
+            <div class="logo-on-banner"><img id="logo" alt="Logotipo" src="./assets/oneiron.png"></div>
+            <div class="uploader">
+              <label class="upl" aria-label="Subir imagen de banner"><input id="banner-input" type="file" accept="image/*">Banner</label>
+              <label class="upl" aria-label="Subir logotipo"><input id="logo-input" type="file" accept="image/*">Logo</label>
+              <button class="upl" type="button" id="reset-media" title="Restablecer imágenes">Restablecer</button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Nombre -->
+      <article class="card" id="sec-nombre" aria-label="Nombre de la empresa">
+        <div class="section-hd">
+          <h2>Nombre</h2>
+        </div>
+        <div class="section-bd">
+          <div class="row">
+            <label class="label" for="company-name">Nombre de la empresa</label>
+            <input class="input" id="company-name" type="text" placeholder="Introduce el nombre" maxlength="140"/>
+          </div>
+        </div>
+      </article>
+
+      <!-- Descripción -->
+      <article class="card" id="sec-desc" aria-label="Descripción de la empresa">
+        <div class="section-hd">
+          <h2>Descripción</h2>
+          <small id="desc-count" style="color:var(--muted)">0 / 500 palabras</small>
+        </div>
+        <div class="section-bd">
+          <div class="row">
+            <label class="label" for="company-desc">Cuéntanos sobre la empresa (máx. 500 palabras)</label>
+            <textarea id="company-desc" placeholder="Misión, productos/servicios, propuesta de valor, etc."></textarea>
+          </div>
+        </div>
+      </article>
+
+      <!-- Etiquetas / sectores -->
+      <article class="card" id="sec-tags" aria-label="Sectores y etiquetas">
+        <div class="section-hd">
+          <h2>Etiquetas</h2>
+          <button id="add-tags" type="button" class="tags-btn" title="Añadir etiquetas" aria-expanded="false" aria-controls="tags-drawer">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span id="tags-label">etiquetas</span>
+          </button>
+        </div>
+        <div class="section-bd">
+          <div id="active-tags" class="chosen-row" aria-live="polite"></div>
+        </div>
+      </article>
+
+      <!-- Localización -->
+      <article class="card" id="sec-local" aria-label="Localización de la empresa">
+        <div class="section-hd"><h2>Localización</h2></div>
+        <div class="section-bd">
+          <div class="row row-2">
+            <label class="label" aria-label="Seleccionar país">País
+              <select id="country">
+                <option value="" selected disabled>país</option>
+              </select>
+            </label>
+            <label class="label" aria-label="Seleccionar provincia o estado">Provincia / Estado
+              <select id="region" disabled>
+                <option value="" selected>provincia / estado</option>
+              </select>
+            </label>
+          </div>
+        </div>
+      </article>
+
+      <div class="actions-row">
+        <button class="btn" id="save-profile" type="button">Guardar cambios</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Carga el listado de países/provincias -->
+  <script src="./countries.js"></script>
+
+  <script>
+    /* ========= Utilidades de persistencia ========= */
+    const LS_KEY = 'oneiron_profiles';
+    const qs = new URLSearchParams(location.search);
+    const currentUser = qs.get('user') || 'anon@oneiron';
+    const defaultBanner = 'linear-gradient(135deg, rgba(79,70,229,.35), rgba(37,99,235,.30))';
+    const defaultLogo = './assets/oneiron.png';
+
+    function readStore(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)) || {}; }catch{ return {}; } }
+    function writeStore(obj){ localStorage.setItem(LS_KEY, JSON.stringify(obj)); }
+    function loadProfile(){ const store = readStore(); return store[currentUser] || { name:'', desc:'', tags:[], country:'', region:'', banner:'', logo:'' }; }
+    function saveProfile(profile){ const store = readStore(); store[currentUser] = profile; writeStore(store); }
+
+    /* ========= Referencias de UI ========= */
+    const bannerEl = document.getElementById('banner');
+    const logoEl = document.getElementById('logo');
+    const bannerInput = document.getElementById('banner-input');
+    const logoInput = document.getElementById('logo-input');
+    const resetMediaBtn = document.getElementById('reset-media');
+    const nameInput = document.getElementById('company-name');
+    const descInput = document.getElementById('company-desc');
+    const wordCountEl = document.getElementById('desc-count');
+    const saveBtn = document.getElementById('save-profile');
+
+    /* ========= Países y regiones desde countries.js ========= */
+    const country = document.getElementById('country');
+    const region = document.getElementById('region');
+
+    Object.keys(window.countryData).sort().forEach(p=>{
+      const opt=document.createElement('option'); opt.value=p; opt.textContent=p; country.appendChild(opt);
+    });
+    country.addEventListener('change', ()=>{
+      const sel=country.value;
+      region.innerHTML='<option value="" selected>provincia / estado</option>';
+      if(!sel){ region.disabled=true; return; }
+      window.countryData[sel].forEach(r=>{
+        const o=document.createElement('option'); o.value=r; o.textContent=r; region.appendChild(o);
+      });
+      region.disabled=false;
+    });
+
+    /* ========= Drawer de etiquetas ========= */
+    const drawer = document.getElementById('tags-drawer');
+    const overlay = document.getElementById('drawer-overlay');
+    const tagsBtn = document.getElementById('add-tags');
+    const drawerClose = document.getElementById('drawer-close');
+    const drawerSummary = document.getElementById('drawer-summary');
+    const tagsLabel = document.getElementById('tags-label');
+    const activeTags = document.getElementById('active-tags');
+
+    const sectorSelect = document.getElementById('sector-select');
+    const subSelect = document.getElementById('subsector-select');
+    const addChipBtn = document.getElementById('add-chip');
+    const clearBtn = document.getElementById('drawer-clear');
+
+    const sectors = {
+      "Agricultura, ganadería, silvicultura y pesca":["Cultivos","Ganadería","Servicios agrarios","Silvicultura","Pesca"],
+      "Industrias extractivas":["Petróleo y gas","Minerales metálicos","Minerales no metálicos"],
+      "Industria manufacturera":["Alimentación","Textil y calzado","Química","Farmacéutica y biotecnología","Materiales de construcción","Metalurgia","Electrónica y semiconductores","Material eléctrico","Maquinaria industrial","Automoción","Transporte avanzado","Muebles y manufacturas","Instrumentos médicos"],
+      "Energía":["Fotovoltaica","Eólica","Hidráulica","Biomasa","Nuclear","Gas","Hidrógeno","Almacenamiento energético","Distribución eléctrica"],
+      "Agua, residuos y saneamiento":["Agua","Aguas residuales","Residuos y reciclaje","Gestión ambiental"],
+      "Construcción":["Edificación","Ingeniería civil","Instalaciones y reformas"],
+      "Comercio":["Mayorista alimentos","Mayorista industriales","Minorista alimentos","Minorista consumo","Vehículos y combustibles","Comercio electrónico"],
+      "Transporte y almacenamiento":["Transporte terrestre","Transporte marítimo","Transporte aéreo","Logística","Mensajería"],
+      "Hostelería":["Hoteles y alojamientos","Restauración","Catering"],
+      "Información, comunicación y tecnología":["Telecomunicaciones","Software","Inteligencia artificial","Big Data","Ciberseguridad","Cloud","Plataformas digitales","Medios","Audiovisual","Videojuegos"],
+      "Finanzas y seguros":["Banca","Fintech","Seguros","Capital riesgo","Inversión"],
+      "Inmobiliario":["Inmobiliario","Proptech"],
+      "Profesionales, científicas y técnicas":["Jurídico y contable","Consultoría empresarial","Consultoría tecnológica","Ingeniería y arquitectura","I+D+i","Marketing","Diseño y creatividad"],
+      "Educación":["Educación superior","Formación profesional","Formación online"],
+      "Sanidad y servicios sociales":["Sanidad","Biomedicina","Salud digital","Servicios sociales"],
+      "Cultura, deportes y ocio":["Artes","Cine","Música","Videojuegos","Deportes","Fitness","Turismo cultural","Ocio nocturno","Recreación"],
+      "Otros servicios":["Asociaciones","ONGs","Sindicatos","Servicios personales"]
+    };
+
+    const selected = new Set();
+
+    function populateSectors(){
+      sectorSelect.innerHTML = '<option value="" selected disabled>elige un sector…</option>';
+      Object.keys(sectors).forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=s; sectorSelect.appendChild(o); });
+      subSelect.innerHTML = '<option value="" selected>elige un subsector…</option>'; subSelect.disabled = true;
+    }
+    populateSectors();
+
+    sectorSelect.addEventListener('change', ()=>{
+      const s=sectorSelect.value;
+      subSelect.innerHTML='<option value="" selected>elige un subsector…</option>';
+      if(!s){ subSelect.disabled=true; return; }
+      sectors[s].forEach(sub=>{
+        const o=document.createElement('option'); o.value=sub; o.textContent=sub; subSelect.appendChild(o);
+      });
+      subSelect.disabled=false; subSelect.focus();
+    });
+
+    function renderActiveTags(){
+      activeTags.innerHTML='';
+      selected.forEach(tag=>{
+        const chip=document.createElement('span');
+        chip.className='chip';
+        chip.innerHTML=`${tag} <button class="x" aria-label="Quitar ${tag}" data-tag="${tag}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>`;
+        activeTags.appendChild(chip);
+      });
+    }
+    function updateSummary(){
+      const n=selected.size;
+      drawerSummary.textContent=`${n} etiqueta${n!==1?'s':''} seleccionada${n!==1?'s':''}`;
+      tagsLabel.textContent = n ? `etiquetas (${n})` : 'etiquetas';
+    }
+    function addCurrentSelection(){
+      const sector=sectorSelect.value; const sub=subSelect.value;
+      if(!sector||!sub) return;
+      const label=`${sector}: ${sub}`;
+      if(!selected.has(label)){ selected.add(label); renderActiveTags(); updateSummary(); }
+    }
+
+    addChipBtn.addEventListener('click', addCurrentSelection);
+    activeTags.addEventListener('click', (e)=>{
+      const btn=e.target.closest('button.x'); if(!btn) return;
+      const tag=btn.getAttribute('data-tag'); selected.delete(tag); renderActiveTags(); updateSummary();
+    });
+    clearBtn.addEventListener('click', ()=>{ selected.clear(); renderActiveTags(); updateSummary(); });
+
+    function openDrawer(){
+      drawer.classList.add('open'); overlay.classList.add('open');
+      drawer.removeAttribute('aria-hidden'); overlay.removeAttribute('aria-hidden');
+      tagsBtn.setAttribute('aria-expanded','true'); setTimeout(()=>{ sectorSelect.focus(); }, 60);
+    }
+    function closeDrawer(){
+      drawer.classList.remove('open'); overlay.classList.remove('open');
+      drawer.setAttribute('aria-hidden','true'); overlay.setAttribute('aria-hidden','true');
+      tagsBtn.setAttribute('aria-expanded','false'); tagsBtn.focus();
+    }
+    tagsBtn.addEventListener('click', ()=>{
+      tagsBtn.animate([{ transform:'translateY(0) scale(1)' },{ transform:'translateY(1px) scale(0.98)' },{ transform:'translateY(0) scale(1)' }], { duration:220, easing:'ease-out' });
+      openDrawer();
+    });
+    document.getElementById('drawer-close').addEventListener('click', closeDrawer);
+    overlay.addEventListener('click', closeDrawer);
+    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && drawer.classList.contains('open')) closeDrawer(); if(e.key==='Enter' && drawer.classList.contains('open')) addCurrentSelection(); });
+
+    /* ========= Carga/previa de imágenes ========= */
+    function readImage(file, cb){ const r=new FileReader(); r.onload=e=>cb(e.target.result); r.readAsDataURL(file); }
+    bannerInput.addEventListener('change', ()=>{ const f=bannerInput.files?.[0]; if(!f) return; readImage(f, (data)=>{ bannerEl.style.backgroundImage = `url(${data})`; current.banner = data; }); });
+    logoInput.addEventListener('change', ()=>{ const f=logoInput.files?.[0]; if(!f) return; readImage(f, (data)=>{ logoEl.src = data; current.logo = data; }); });
+    resetMediaBtn.addEventListener('click', ()=>{ bannerEl.style.backgroundImage = defaultBanner; logoEl.src = defaultLogo; current.banner=''; current.logo=''; });
+
+    /* ========= Descripción: contador y autoresize ========= */
+    function countWords(str){ return (str.trim().match(/\b\w+\b/g)||[]).length; }
+    function updateWordCount(){ const n=countWords(descInput.value); wordCountEl.textContent = `${n} / 500 palabras`; if(n>500){ wordCountEl.style.color='var(--err)'; saveBtn.disabled=true; } else { wordCountEl.style.color='var(--muted)'; saveBtn.disabled=false; } }
+    function autoResize(){ descInput.style.height='auto'; descInput.style.height = Math.min(descInput.scrollHeight, 1400) + 'px'; }
+    ['input','change'].forEach(evt=>{ descInput.addEventListener(evt, ()=>{ updateWordCount(); autoResize(); }); });
+
+    /* ========= Guardar / cargar ========= */
+    let current = loadProfile();
+
+    function hydrate(){
+      // banner/logo
+      bannerEl.style.backgroundImage = current.banner ? `url(${current.banner})` : defaultBanner;
+      logoEl.src = current.logo || defaultLogo;
+      // nombre/desc
+      nameInput.value = current.name || '';
+      descInput.value = current.desc || '';
+      autoResize(); updateWordCount();
+      // etiquetas
+      selected.clear(); (current.tags||[]).forEach(t=>selected.add(t)); renderActiveTags(); updateSummary();
+      // localización
+      if(current.country){ country.value = current.country; const evt=new Event('change'); country.dispatchEvent(evt); }
+      if(current.region){ setTimeout(()=>{ region.value = current.region; }, 0); }
+    }
+
+    hydrate();
+
+    /* ========= Scroll con offset del banner ========= */
+    function getBannerHeight(){
+      const v = getComputedStyle(document.documentElement).getPropertyValue('--banner-h').trim();
+      const n = parseInt(v, 10);
+      return isNaN(n) ? 0 : n;
+    }
+    document.querySelectorAll('.side-nav a[href^="#"]').forEach(a=>{
+      a.addEventListener('click', (e)=>{
+        e.preventDefault();
+        const id = a.getAttribute('href').slice(1);
+        const el = document.getElementById(id);
+        if(!el) return;
+        const y = el.getBoundingClientRect().top + window.scrollY - getBannerHeight();
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      });
+    });
+
+    saveBtn.addEventListener('click', ()=>{
+      if(countWords(descInput.value) > 500){ alert('La descripción supera las 500 palabras.'); return; }
+      current = {
+        name: nameInput.value.trim(),
+        desc: descInput.value.trim(),
+        tags: Array.from(selected),
+        country: country.value || '',
+        region: region.value || '',
+        banner: current.banner || '',
+        logo: current.logo || ''
+      };
+      saveProfile(current);
+      alert('Perfil guardado.');
+    });
+
+    // Parallax sutil de orbes
+    const orbs = Array.from(document.querySelectorAll('.orb'));
+    let raf = 0; const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function onMove(x, y){ orbs.forEach((el,i)=>{ const depth=(i+1)*0.015; el.style.transform = `translate3d(${(x-0.5)*30*depth}px, ${(y-0.5)*30*depth}px, 0)`; }); }
+    function handlePointer(evt){ if(prefersReduced) return; const {innerWidth:w, innerHeight:h}=window; const x=(evt.clientX??(evt.touches?.[0]?.clientX||w/2))/w; const y=(evt.clientY??(evt.touches?.[0]?.clientY||h/2))/h; cancelAnimationFrame(raf); raf=requestAnimationFrame(()=>onMove(x,y)); }
+    window.addEventListener('pointermove', handlePointer, {passive:true});
+    window.addEventListener('touchmove', handlePointer, {passive:true});
+
+    // Atajo '/': enfoca nombre si no hay otro input activo
+    window.addEventListener('keydown', (e)=>{ if(e.key==='/' && !/input|textarea|select/i.test(document.activeElement.tagName) && !drawer.classList.contains('open')){ e.preventDefault(); nameInput.focus(); }});
+  </script>
+</body>
+</html>

@@ -235,11 +235,21 @@
     attachPeek('toggle-pass', pass1);
     attachPeek('toggle-pass2', pass2);
 
-    // De momento sin envío real
     document.getElementById('signup-form').addEventListener('submit', (e)=>{
       e.preventDefault();
-      // Aquí iría la lógica de registro cuando toque
-      alert('Botón "Crear cuenta" pulsado (sin funcionalidad por ahora).');
+      const email = document.getElementById('email').value.trim();
+      if(!email) { alert('Introduce un correo.'); return; }
+
+      // Si quieres, aquí podrías preconfigurar un perfil vacío en localStorage:
+      const LS_KEY = 'oneiron_profiles';
+      const store = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+      if(!store[email]) {
+        store[email] = { name:'', desc:'', tags:[], country:'', region:'', banner:'', logo:'' };
+        localStorage.setItem(LS_KEY, JSON.stringify(store));
+      }
+
+      // Redirige al perfil con el email en la URL
+      location.href = `./perfil.html?user=${encodeURIComponent(email)}`;
     });
   </script>
 </body>
