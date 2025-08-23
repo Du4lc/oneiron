@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Inicia sesión — ONEIRON</title>
+  <style>
+    :root{
+      --bg:#f9fafb;
+      --card:#ffffffee;
+      --glass:#ffffffb8;
+      --soft:#f3f4f680;
+      --stroke:#d1d5db80;
+      --text:#0f172a;
+      --muted:#6b7280;
+      --accent:#4f46e5;
+      --accent-2:#2563eb;
+      --accent-3:#06b6d4;
+      --radius:16px;
+      --shadow-xl: 0 10px 30px rgba(20, 24, 60, .12), 0 2px 8px rgba(20,24,60,.08);
+      --ring: 0 0 0 6px rgba(79,70,229,.18);
+      --ok:#16a34a;
+      --err:#ef4444;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color:var(--text); background:var(--bg); -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; overflow-x:hidden;
+    }
+    .dream-bg{ position:fixed; inset:0; z-index:-2; overflow:hidden;
+      background:
+        radial-gradient(1200px 520px at 50% -5%, color-mix(in oklab, var(--accent) 22%, transparent), transparent 60%),
+        radial-gradient(900px 380px at 15% 100%, color-mix(in oklab, var(--accent-2) 22%, transparent), transparent 60%),
+        radial-gradient(700px 300px at 85% 90%, color-mix(in oklab, var(--accent-3) 18%, transparent), transparent 60%),
+        linear-gradient(#f9fbff, #f8fafc 60%, #f9fafb);
+    }
+    .stars,.grain{position:absolute; inset:0; pointer-events:none}
+    .stars{ background-image:
+      radial-gradient(1px 1px at 10% 20%, rgba(38,38,80,.6) 40%, transparent 41%),
+      radial-gradient(1px 1px at 30% 70%, rgba(38,38,80,.5) 40%, transparent 41%),
+      radial-gradient(1px 1px at 60% 30%, rgba(38,38,80,.55) 40%, transparent 41%),
+      radial-gradient(1.2px 1.2px at 80% 60%, rgba(38,38,80,.45) 40%, transparent 41%),
+      radial-gradient(0.9px 0.9px at 50% 85%, rgba(38,38,80,.45) 40%, transparent 41%); filter:blur(.2px); opacity:.55; }
+    .grain{ mix-blend-mode:soft-light; opacity:.35;
+      background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/></filter><rect width="160" height="160" filter="url(%23n)" opacity="0.08"/></svg>');
+      background-size:160px 160px; }
+    .orb{position:absolute; filter:blur(24px); opacity:.35; border-radius:999px; will-change:transform;}
+    .orb.one{width:380px; height:380px; left:-80px; top:10vh; background:radial-gradient(circle at 30% 30%, #93c5fd, transparent 60%)}
+    .orb.two{width:420px; height:420px; right:-120px; top:45vh; background:radial-gradient(circle at 70% 40%, #a5b4fc, transparent 60%)}
+    .orb.three{width:300px; height:300px; left:55vw; top:-120px; background:radial-gradient(circle at 30% 70%, #67e8f9, transparent 60%)}
+    @keyframes drift{0%{transform:translate3d(0,0,0) rotate(0)}50%{transform:translate3d(0,12px,0) rotate(1deg)}100%{transform:translate3d(0,0,0) rotate(0)}}
+    .orb{animation:drift 11s ease-in-out infinite}
+
+    .wrap{ min-height:100dvh; display:grid; place-items:center; padding:32px 16px; }
+    .card{
+      width:100%; max-width:520px;
+      border:1px solid var(--stroke);
+      background:linear-gradient(180deg, var(--card), var(--soft));
+      border-radius:24px; box-shadow: var(--shadow-xl);
+      padding:24px 22px 20px;
+      position:relative; overflow:hidden;
+    }
+    .card:before{
+      content:""; position:absolute; inset:-2px; border-radius:inherit; pointer-events:none;
+      background: conic-gradient(from 120deg at 50% 50%, rgba(79,70,229,.16), rgba(37,99,235,.14), rgba(6,182,212,.12), rgba(79,70,229,.16));
+      filter:blur(16px); opacity:.65;
+    }
+    .logo{ display:grid; place-items:center; margin:8px 0 14px; }
+    .logo img{ width:min(280px, 65vw); height:auto; object-fit:contain;
+      filter: drop-shadow(0 14px 24px rgba(79,70,229,.28)) drop-shadow(0 4px 8px rgba(37,99,235,.18));
+    }
+    .title{ text-align:center; font-weight:800; margin:0 0 2px; font-size:1.45rem; }
+    .subtitle{ text-align:center; color:var(--muted); margin:0 0 16px; font-size:.98rem; }
+    .field{display:grid; gap:6px; margin:12px 0;}
+    .label{font-size:.92rem; color:var(--muted)}
+    .control{position:relative}
+    .input{
+      width:100%; border:1px solid var(--stroke);
+      background:linear-gradient(180deg, #fff, #f8fafc);
+      color:var(--text);
+      padding:12px 44px 12px 12px; border-radius:var(--radius);
+      outline:none; transition:border-color .15s, box-shadow .2s;
+      box-shadow: 0 1px 0 rgba(0,0,0,.02) inset, 0 6px 14px rgba(15,23,42,.06);
+      height:46px; font-size:1rem;
+    }
+    .input:focus-visible{border-color:var(--accent); box-shadow:var(--ring)}
+    .eye-btn{
+      position:absolute; right:8px; top:50%; transform:translateY(-50%);
+      border:1px solid var(--stroke); background:#fff; width:38px; height:38px;
+      border-radius:12px; display:grid; place-items:center; cursor:pointer;
+    }
+    .eye-btn:active{transform:translateY(-50%) translateY(1px)}
+    .row-actions{ display:flex; align-items:center; justify-content:flex-end; gap:10px; margin-top:12px; }
+    .btn{
+      border:1px solid var(--stroke);
+      background:linear-gradient(135deg, rgba(79,70,229,.95), rgba(37,99,235,.95));
+      color:#fff; padding:12px 16px; border-radius:14px; font-weight:700; cursor:pointer;
+      box-shadow:0 8px 20px rgba(79,70,229,.22);
+    }
+    .btn[disabled]{opacity:.55; cursor:not-allowed; filter:grayscale(.1)}
+    .ghost{ background:#fff; color:var(--text); font-weight:600; }
+  </style>
+</head>
+<body>
+  <div class="dream-bg" aria-hidden="true">
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+    <div class="orb three"></div>
+    <div class="stars"></div>
+    <div class="grain"></div>
+  </div>
+
+  <main class="wrap" role="main">
+    <section class="card" aria-label="Inicio de sesión">
+      <div class="logo" aria-hidden="true">
+        <img src="./assets/oneiron.png" alt="ONEIRON"/>
+      </div>
+      <h1 class="title">Inicia sesión</h1>
+      <p class="subtitle">Accede a tu cuenta de ONEIRON</p>
+
+      <form id="login-form" novalidate>
+        <div class="field">
+          <label class="label" for="email">Correo</label>
+          <div class="control">
+            <input class="input" id="email" type="email" placeholder="tu@empresa.com" autocomplete="email" required />
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="password">Contraseña</label>
+          <div class="control">
+            <input class="input" id="password" type="password" placeholder="••••••••" autocomplete="current-password" required />
+            <button type="button" class="eye-btn" id="toggle-pass" aria-label="Mantén pulsado para ver contraseña">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+          <div class="row-actions" style="justify-content:flex-start; margin-top:6px">
+            <a class="btn ghost" href="#" id="forgot" aria-label="He olvidado mi contraseña">¿Has olvidado tu contraseña?</a>
+          </div>
+        </div>
+
+        <div class="row-actions">
+          <a class="btn ghost" href="./index.html" aria-label="Volver a inicio">Volver</a>
+          <button class="btn" type="submit" id="do-login" disabled>Entrar</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    const email = document.getElementById('email');
+    const pass = document.getElementById('password');
+    const loginBtn = document.getElementById('do-login');
+
+    function validate(){
+      const ok = email.value.trim() && pass.value;
+      loginBtn.disabled = !ok;
+    }
+    ['input','blur','keyup','change'].forEach(evt=>{
+      email.addEventListener(evt, validate);
+      pass.addEventListener(evt, validate);
+    });
+    validate();
+
+    function attachPeek(btnId, inputEl){
+      const btn = document.getElementById(btnId);
+      const show = ()=>{ inputEl.type = 'text'; };
+      const hide = ()=>{ inputEl.type = 'password'; };
+      btn.addEventListener('mousedown', show);
+      btn.addEventListener('touchstart', show, {passive:true});
+      window.addEventListener('mouseup', hide);
+      window.addEventListener('touchend', hide);
+      btn.addEventListener('mouseleave', hide);
+      btn.addEventListener('touchcancel', hide);
+      btn.addEventListener('blur', hide);
+    }
+    attachPeek('toggle-pass', pass);
+
+    document.getElementById('login-form').addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const emailVal = email.value.trim();
+      if(!emailVal){ alert('Introduce tu correo.'); return; }
+      const LS_KEY = 'oneiron_profiles';
+      const store = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+      if(!store[emailVal]){
+        alert('No encontramos una cuenta con ese correo. Crea una cuenta primero.');
+        return;
+      }
+      location.href = `./perfil.html?user=${encodeURIComponent(emailVal)}`;
+    });
+
+    document.getElementById('forgot').addEventListener('click', (e)=>{
+      e.preventDefault();
+      alert('Funcionalidad de recuperación pendiente de backend. Aquí iría el flujo de reset.');
+    });
+  </script>
+</body>
+</html>

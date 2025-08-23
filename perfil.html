@@ -327,6 +327,7 @@
 
   <!-- Carga el listado de países/provincias -->
   <script src="./countries.js"></script>
+  <script src="./sectors.js"></script>
 
   <script>
     /* ========= Utilidades de persistencia ========= */
@@ -383,25 +384,7 @@
     const addChipBtn = document.getElementById('add-chip');
     const clearBtn = document.getElementById('drawer-clear');
 
-    const sectors = {
-      "Agricultura, ganadería, silvicultura y pesca":["Cultivos","Ganadería","Servicios agrarios","Silvicultura","Pesca"],
-      "Industrias extractivas":["Petróleo y gas","Minerales metálicos","Minerales no metálicos"],
-      "Industria manufacturera":["Alimentación","Textil y calzado","Química","Farmacéutica y biotecnología","Materiales de construcción","Metalurgia","Electrónica y semiconductores","Material eléctrico","Maquinaria industrial","Automoción","Transporte avanzado","Muebles y manufacturas","Instrumentos médicos"],
-      "Energía":["Fotovoltaica","Eólica","Hidráulica","Biomasa","Nuclear","Gas","Hidrógeno","Almacenamiento energético","Distribución eléctrica"],
-      "Agua, residuos y saneamiento":["Agua","Aguas residuales","Residuos y reciclaje","Gestión ambiental"],
-      "Construcción":["Edificación","Ingeniería civil","Instalaciones y reformas"],
-      "Comercio":["Mayorista alimentos","Mayorista industriales","Minorista alimentos","Minorista consumo","Vehículos y combustibles","Comercio electrónico"],
-      "Transporte y almacenamiento":["Transporte terrestre","Transporte marítimo","Transporte aéreo","Logística","Mensajería"],
-      "Hostelería":["Hoteles y alojamientos","Restauración","Catering"],
-      "Información, comunicación y tecnología":["Telecomunicaciones","Software","Inteligencia artificial","Big Data","Ciberseguridad","Cloud","Plataformas digitales","Medios","Audiovisual","Videojuegos"],
-      "Finanzas y seguros":["Banca","Fintech","Seguros","Capital riesgo","Inversión"],
-      "Inmobiliario":["Inmobiliario","Proptech"],
-      "Profesionales, científicas y técnicas":["Jurídico y contable","Consultoría empresarial","Consultoría tecnológica","Ingeniería y arquitectura","I+D+i","Marketing","Diseño y creatividad"],
-      "Educación":["Educación superior","Formación profesional","Formación online"],
-      "Sanidad y servicios sociales":["Sanidad","Biomedicina","Salud digital","Servicios sociales"],
-      "Cultura, deportes y ocio":["Artes","Cine","Música","Videojuegos","Deportes","Fitness","Turismo cultural","Ocio nocturno","Recreación"],
-      "Otros servicios":["Asociaciones","ONGs","Sindicatos","Servicios personales"]
-    };
+    const sectors = window.sectorData;
 
     const selected = new Set();
 

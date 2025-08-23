@@ -26,7 +26,9 @@
       margin:0; font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
       color:var(--text); background:var(--bg); -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; overflow-x:hidden;
     }
-    .dream-bg{ position:fixed; inset:0; z-index:-2; overflow:hidden;
+
+    /* fondo onírico */
+    .dream-bg{ position:fixed; inset:0; z-index:-3; overflow:hidden;
       background:
         radial-gradient(1200px 520px at 50% -5%, color-mix(in oklab, var(--accent) 22%, transparent), transparent 60%),
         radial-gradient(900px 380px at 15% 100%, color-mix(in oklab, var(--accent-2) 22%, transparent), transparent 60%),
@@ -54,36 +56,35 @@
     header{ position:sticky; top:0; z-index:10; backdrop-filter: blur(10px);
       background:linear-gradient(to bottom, rgba(255,255,255,.75), rgba(255,255,255,.55)); border-bottom:1px solid var(--stroke); }
 
-    /* ===== Header centrado con CTA a la derecha ===== */
+    /* ===== Header centrado con CTAs a la derecha ===== */
     .shell{
       max-width:1100px; margin:0 auto; padding:18px 22px;
       display:grid; grid-template-columns: 1fr auto 1fr; align-items:center; gap:12px;
     }
     .brand{ grid-column:2; display:flex; justify-content:center; align-items:center; }
     .brand img{
-      height:150px; /* más grande */
+      height:150px;
       width:auto; object-fit:contain;
       filter: drop-shadow(0 14px 24px rgba(79,70,229,.28)) drop-shadow(0 4px 8px rgba(37,99,235,.18));
       transition:transform .6s cubic-bezier(.2,.8,.2,1);
     }
     .brand img:hover{transform:translateY(-2px) scale(1.02)}
-    header nav{ grid-column:3; justify-self:end; } /* CTA totalmente a la derecha */
+    header nav{ grid-column:3; justify-self:end; display:flex; gap:10px; }
 
-    /* Botón CTA crear cuenta */
     .cta{
       display:inline-flex; align-items:center; gap:8px;
       padding:10px 14px; border-radius:12px; border:1px solid var(--stroke);
       background:linear-gradient(135deg, rgba(79,70,229,.95), rgba(37,99,235,.95));
       color:#fff; text-decoration:none; box-shadow:0 8px 20px rgba(79,70,229,.22);
       font-weight:600; line-height:1; white-space:nowrap;
-      margin-left:auto; /* empuja el botón al borde derecho */
+      margin-left:auto;
     }
-
     .cta:hover{filter:saturate(1.05) brightness(1.02)}
     .cta:active{transform:translateY(1px)}
-    .cta svg{opacity:.95}
+    .cta.secondary{ background:#fff; color:var(--text); border-color:var(--stroke); box-shadow:none; }
+    .cta.secondary:hover{ background:var(--soft); }
 
-    /* ===== Resto de estilos originales ===== */
+    /* ===== Toolbar y drawer ===== */
     main{max-width:1100px; margin:0 auto; padding:0 22px 80px;}
     .toolbar-wrap{position:relative; margin-top:26px}
     .toolbar{
@@ -116,6 +117,7 @@
     .control input{padding-left:40px;}
     .tags-btn{display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none; background:linear-gradient(135deg, rgba(79,70,229,.08), rgba(37,99,235,.08));}
     .tags-btn:hover{border-color:color-mix(in oklab, var(--accent) 60%, white 40%); box-shadow:0 10px 18px rgba(79,70,229,.12), inset 0 1px 0 rgba(255,255,255,.6);}
+
     select{
       appearance:none; padding-right:46px; min-width:180px;
       background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23111827"><path d="M7 10l5 5 5-5"/></svg>');
@@ -126,6 +128,25 @@
     .chip{ display:inline-flex; align-items:center; gap:8px; border:1px solid var(--stroke); background:linear-gradient(180deg, #fff, #f8fafc); padding:6px 10px; border-radius:999px; font-size:.9rem; }
     .chip .x{ border:0; background:transparent; padding:2px; cursor:pointer; line-height:0; display:grid; place-items:center; }
     .chip .x svg{ opacity:.8 }
+
+    .drawer-overlay{ position:fixed; inset:0; background:radial-gradient(1200px 700px at 20% 50%, rgba(79,70,229,.12), transparent 60%), rgba(2,6,23,.28);
+      backdrop-filter: blur(3px); opacity:0; pointer-events:none; transition:opacity .25s ease; z-index:20; }
+    .drawer-overlay.open{ opacity:1; pointer-events:auto; }
+
+    .drawer{ position:fixed; top:0; left:0; height:100dvh; width:clamp(320px, 33.33vw, 520px); transform:translateX(-102%);
+      transition: transform .32s cubic-bezier(.2,.8,.2,1); z-index:21; display:flex; flex-direction:column;
+      border-right:1px solid var(--stroke); background:linear-gradient(180deg, var(--card), var(--soft)); box-shadow:var(--shadow-xl); }
+    .drawer.open{ transform:translateX(0); }
+    .drawer .hd{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px; position:relative; }
+    .drawer .hd h2{ font-size:1.05rem; margin:0; letter-spacing:.3px; }
+    .drawer .close{ border:1px solid var(--stroke); background:var(--card); border-radius:12px; padding:8px; cursor:pointer; }
+    .drawer .content{ padding:12px 12px 18px 12px; overflow:auto; scrollbar-gutter:stable; }
+    .picker{ display:grid; grid-template-columns:1fr; gap:12px; }
+    .picker label{ display:grid; gap:6px; font-size:.9rem; color:var(--muted); }
+    .picker .actions{ display:flex; gap:8px; align-items:center; }
+    .picker .add{ background:linear-gradient(135deg, rgba(79,70,229,.95), rgba(37,99,235,.95)); color:#fff; border:0; border-radius:12px; padding:10px 14px; cursor:pointer; box-shadow:0 8px 20px rgba(79,70,229,.22); }
+    .clear{ border:1px solid var(--stroke); background:#fff; border-radius:12px; padding:10px 12px; cursor:pointer; }
+
     .full-bleed{ width: calc(100vw - 32px); position:relative; left:50%; margin-left: calc(-50vw + 16px); }
     .placeholder{
       position:relative; margin-top:22px; height:56vh; border-radius:22px; display:grid; place-items:center; color:var(--muted);
@@ -141,24 +162,7 @@
     .floater{position:absolute; width:140px; height:140px; border-radius:999px; filter:blur(20px); opacity:.35; pointer-events:none}
     .floater.a{right:18px; top:-28px; background:radial-gradient(circle at 30% 40%, #c7d2fe, transparent 60%)}
     .floater.b{left:-28px; bottom:-28px; width:180px; height:180px; background:radial-gradient(circle at 70% 60%, #bae6fd, transparent 60%)}
-    .drawer-overlay{ position:fixed; inset:0; background:radial-gradient(1200px 700px at 20% 50%, rgba(79,70,229,.12), transparent 60%), rgba(2,6,23,.28);
-      backdrop-filter: blur(3px); opacity:0; pointer-events:none; transition:opacity .25s ease; z-index:20; }
-    .drawer{ position:fixed; top:0; left:0; height:100dvh; width:clamp(320px, 33.33vw, 520px); transform:translateX(-102%);
-      transition: transform .32s cubic-bezier(.2,.8,.2,1); z-index:21; display:flex; flex-direction:column;
-      border-right:1px solid var(--stroke); background:linear-gradient(180deg, var(--card), var(--soft)); box-shadow:var(--shadow-xl); }
-    .drawer.open{ transform:translateX(0); }
-    .drawer-overlay.open{ opacity:1; pointer-events:auto; }
-    .drawer .hd{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px; position:relative; }
-    .drawer .hd h2{ font-size:1.05rem; margin:0; letter-spacing:.3px; }
-    .drawer .close{ border:1px solid var(--stroke); background:var(--card); border-radius:12px; padding:8px; cursor:pointer; }
-    .drawer .content{ padding:12px 12px 18px 12px; overflow:auto; scrollbar-gutter:stable; }
-    .picker{ display:grid; grid-template-columns:1fr; gap:12px; }
-    .picker label{ display:grid; gap:6px; font-size:.9rem; color:var(--muted); }
-    .picker .actions{ display:flex; gap:8px; align-items:center; }
-    .picker .add{ background:linear-gradient(135deg, rgba(79,70,229,.95), rgba(37,99,235,.95)); color:#fff; border:0; border-radius:12px; padding:10px 14px; cursor:pointer; box-shadow:0 8px 20px rgba(79,70,229,.22); }
-    .drawer .ft{ margin:8px 0 12px; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:0 12px; }
-    .ft .summary{ font-size:.9rem; color:var(--muted); }
-    .ft .clear{ border:1px solid var(--stroke); background:#fff; border-radius:12px; padding:10px 12px; cursor:pointer; }
+
     @media (prefers-reduced-motion: reduce){ .orb{animation:none} .brand img{transition:none} .drawer{transition:none} }
     .kbd{font:600 12px ui-monospace, SFMono-Regular, Menlo, monospace; padding:4px 6px; border-radius:8px; border:1px solid var(--stroke); background:#fff}
   </style>
@@ -172,6 +176,7 @@
     <div class="grain"></div>
   </div>
 
+  <!-- Overlay y drawer para etiquetas -->
   <div id="drawer-overlay" class="drawer-overlay" aria-hidden="true"></div>
   <aside id="tags-drawer" class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" aria-hidden="true">
     <div class="hd">
@@ -198,7 +203,7 @@
         </div>
       </div>
     </div>
-    <div class="ft">
+    <div class="ft" style="padding:0 12px 12px">
       <span class="summary" id="drawer-summary">0 etiquetas seleccionadas</span>
     </div>
   </aside>
@@ -208,9 +213,8 @@
       <div class="brand" aria-label="ONEIRON">
         <img alt="ONEIRON" src="./assets/oneiron.png"/>
       </div>
-
-      <!-- CTA Crear cuenta (arriba a la derecha) -->
       <nav>
+        <a class="cta secondary" href="./login.html" aria-label="Iniciar sesión">Iniciar sesión</a>
         <a class="cta" href="./signup.html" aria-label="Crear cuenta">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M12 5v14M5 12h14"/>
@@ -256,241 +260,192 @@
     </section>
   </main>
 
-  <!-- 1) Carga primero el archivo con los países -->
+  <!-- Datos -->
   <script src="./countries.js"></script>
+  <script src="./sectors.js"></script>
 
-  <!-- 2) Tu script principal (usa window.countryData) -->
+  <!-- Lógica -->
   <script>
-    const country = document.getElementById('country');
-    const region = document.getElementById('region');
-    const searchInput = document.getElementById('search');
+    (function(){
+      /* ==== Países / regiones ==== */
+      const country = document.getElementById('country');
+      const region = document.getElementById('region');
+      const searchInput = document.getElementById('search');
 
-    // Rellenar países usando la variable global
-    Object.keys(window.countryData).sort().forEach(p => {
-      const opt = document.createElement('option');
-      opt.value = p; opt.textContent = p; country.appendChild(opt);
-    });
+      if(window.countryData){
+        Object.keys(window.countryData).sort().forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p; opt.textContent = p; country.appendChild(opt);
+        });
 
-    // Al elegir país -> habilitar y poblar regiones
-    country.addEventListener('change', () => {
-      const sel = country.value;
-      region.innerHTML = '<option value="" selected>provincia / estado</option>';
-      if (!sel){ region.disabled = true; return; }
-      window.countryData[sel].forEach(r => {
-        const o = document.createElement('option');
-        o.value = r; o.textContent = r; region.appendChild(o);
+        country.addEventListener('change', () => {
+          const sel = country.value;
+          region.innerHTML = '<option value="" selected>provincia / estado</option>';
+          if (!sel){ region.disabled = true; return; }
+          window.countryData[sel].forEach(r => {
+            const o = document.createElement('option');
+            o.value = r; o.textContent = r; region.appendChild(o);
+          });
+          region.disabled = false;
+        });
+      }
+
+      /* ==== Drawer de etiquetas (robusto) ==== */
+      const drawer = document.getElementById('tags-drawer');
+      const overlay = document.getElementById('drawer-overlay');
+      const tagsBtn = document.getElementById('add-tags');
+      const drawerClose = document.getElementById('drawer-close');
+      const drawerSummary = document.getElementById('drawer-summary');
+      const tagsLabel = document.getElementById('tags-label');
+      const activeTags = document.getElementById('active-tags');
+
+      const sectorSelect = document.getElementById('sector-select');
+      const subSelect = document.getElementById('subsector-select');
+      const addChipBtn = document.getElementById('add-chip');
+      const clearBtn = document.getElementById('drawer-clear');
+
+      // 1) Cargar sectores de forma segura (evita romper el botón si falta el archivo)
+      const fallbackSectors = {
+        "Información, comunicación y tecnología": ["Software","Inteligencia artificial","Ciberseguridad"],
+        "Energía": ["Fotovoltaica","Eólica","Hidrógeno"]
+      };
+      const sectors = (window.sectorData && typeof window.sectorData === 'object' && Object.keys(window.sectorData).length)
+        ? window.sectorData
+        : fallbackSectors;
+
+      function populateSectors(){
+        sectorSelect.innerHTML = '<option value="" selected disabled>elige un sector…</option>';
+        Object.keys(sectors).forEach(s => {
+          const o = document.createElement('option'); o.value = s; o.textContent = s; sectorSelect.appendChild(o);
+        });
+        subSelect.innerHTML = '<option value="" selected>elige un subsector…</option>';
+        subSelect.disabled = true;
+      }
+      populateSectors();
+
+      sectorSelect.addEventListener('change', ()=>{
+        const s = sectorSelect.value;
+        subSelect.innerHTML = '<option value="" selected>elige un subsector…</option>';
+        if(!s){ subSelect.disabled = true; return; }
+        (sectors[s] || []).forEach(sub => {
+          const o = document.createElement('option'); o.value = sub; o.textContent = sub; subSelect.appendChild(o);
+        });
+        subSelect.disabled = false;
+        subSelect.focus();
       });
-      region.disabled = false;
-    });
 
-    /* ==== Drawer de etiquetas (selects dependientes) ==== */
-    const drawer = document.getElementById('tags-drawer');
-    const overlay = document.getElementById('drawer-overlay');
-    const tagsBtn = document.getElementById('add-tags');
-    const drawerClose = document.getElementById('drawer-close');
-    const drawerSummary = document.getElementById('drawer-summary');
-    const tagsLabel = document.getElementById('tags-label');
-    const activeTags = document.getElementById('active-tags');
+      const selected = new Set();
 
-    const sectorSelect = document.getElementById('sector-select');
-    const subSelect = document.getElementById('subsector-select');
-    const addChipBtn = document.getElementById('add-chip');
-    const clearBtn = document.getElementById('drawer-clear');
+      function renderActiveTags(){
+        activeTags.innerHTML = '';
+        selected.forEach(tag => {
+          const chip = document.createElement('span');
+          chip.className = 'chip';
+          chip.innerHTML = `${tag} <button class="x" aria-label="Quitar ${tag}" data-tag="${tag}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>`;
+          activeTags.appendChild(chip);
+        });
+      }
+      function updateSummary(){
+        const n = selected.size;
+        drawerSummary.textContent = `${n} etiqueta${n!==1?'s':''} seleccionada${n!==1?'s':''}`;
+        tagsLabel.textContent = n ? `etiquetas (${n})` : 'etiquetas';
+      }
+      function addCurrentSelection(){
+        const sector = sectorSelect.value;
+        const sub = subSelect.value;
+        if(!sector || !sub) return;
+        const label = `${sector}: ${sub}`;
+        if(!selected.has(label)){
+          selected.add(label);
+          renderActiveTags();
+          updateSummary();
+        }
+      }
 
-    const sectors = {
-      "Agricultura, ganadería, silvicultura y pesca": [
-        "Cultivos","Ganadería","Servicios agrarios","Silvicultura","Pesca"
-      ],
-      "Industrias extractivas": [
-        "Petróleo y gas","Minerales metálicos","Minerales no metálicos"
-      ],
-      "Industria manufacturera": [
-        "Alimentación","Textil y calzado","Química","Farmacéutica y biotecnología",
-        "Materiales de construcción","Metalurgia","Electrónica y semiconductores",
-        "Material eléctrico","Maquinaria industrial","Automoción",
-        "Transporte avanzado","Muebles y manufacturas","Instrumentos médicos"
-      ],
-      "Energía": [
-        "Fotovoltaica","Eólica","Hidráulica","Biomasa","Nuclear","Gas",
-        "Hidrógeno","Almacenamiento energético","Distribución eléctrica"
-      ],
-      "Agua, residuos y saneamiento": [
-        "Agua","Aguas residuales","Residuos y reciclaje","Gestión ambiental"
-      ],
-      "Construcción": [
-        "Edificación","Ingeniería civil","Instalaciones y reformas"
-      ],
-      "Comercio": [
-        "Mayorista alimentos","Mayorista industriales","Minorista alimentos",
-        "Minorista consumo","Vehículos y combustibles","Comercio electrónico"
-      ],
-      "Transporte y almacenamiento": [
-        "Transporte terrestre","Transporte marítimo","Transporte aéreo",
-        "Logística","Mensajería"
-      ],
-      "Hostelería": [
-        "Hoteles y alojamientos","Restauración","Catering"
-      ],
-      "Información, comunicación y tecnología": [
-        "Telecomunicaciones","Software","Inteligencia artificial","Big Data",
-        "Ciberseguridad","Cloud","Plataformas digitales","Medios",
-        "Audiovisual","Videojuegos"
-      ],
-      "Finanzas y seguros": [
-        "Banca","Fintech","Seguros","Capital riesgo","Inversión"
-      ],
-      "Inmobiliario": [
-        "Inmobiliario","Proptech"
-      ],
-      "Profesionales, científicas y técnicas": [
-        "Jurídico y contable","Consultoría empresarial","Consultoría tecnológica",
-        "Ingeniería y arquitectura","I+D+i","Marketing","Diseño y creatividad"
-      ],
-      "Educación": [
-        "Educación superior","Formación profesional","Formación online"
-      ],
-      "Sanidad y servicios sociales": [
-        "Sanidad","Biomedicina","Salud digital","Servicios sociales"
-      ],
-      "Cultura, deportes y ocio": [
-        "Artes","Cine","Música","Videojuegos","Deportes","Fitness",
-        "Turismo cultural","Ocio nocturno","Recreación"
-      ],
-      "Otros servicios": [
-        "Asociaciones","ONGs","Sindicatos","Servicios personales"
-      ]
-    };
-
-    const selected = new Set();
-
-    function populateSectors(){
-      sectorSelect.innerHTML = '<option value="" selected disabled>elige un sector…</option>';
-      Object.keys(sectors).forEach(s => {
-        const o = document.createElement('option'); o.value = s; o.textContent = s; sectorSelect.appendChild(o);
-      });
-      subSelect.innerHTML = '<option value="" selected>elige un subsector…</option>';
-      subSelect.disabled = true;
-    }
-    populateSectors();
-
-    sectorSelect.addEventListener('change', ()=>{
-      const s = sectorSelect.value;
-      subSelect.innerHTML = '<option value="" selected>elige un subsector…</option>';
-      if(!s){ subSelect.disabled = true; return; }
-      sectors[s].forEach(sub => {
-        const o = document.createElement('option'); o.value = sub; o.textContent = sub; subSelect.appendChild(o);
-      });
-      subSelect.disabled = false;
-      subSelect.focus();
-    });
-
-    function renderActiveTags(){
-      activeTags.innerHTML = '';
-      selected.forEach(tag => {
-        const chip = document.createElement('span');
-        chip.className = 'chip';
-        chip.innerHTML = `${tag} <button class="x" aria-label="Quitar ${tag}" data-tag="${tag}">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>`;
-        activeTags.appendChild(chip);
-      });
-    }
-
-    function updateSummary(){
-      const n = selected.size;
-      drawerSummary.textContent = `${n} etiqueta${n!==1?'s':''} seleccionada${n!==1?'s':''}`;
-      tagsLabel.textContent = n ? `etiquetas (${n})` : 'etiquetas';
-    }
-
-    function addCurrentSelection(){
-      const sector = sectorSelect.value;
-      const sub = subSelect.value;
-      if(!sector || !sub) return;
-      const label = `${sector}: ${sub}`;
-      if(!selected.has(label)){
-        selected.add(label);
+      addChipBtn.addEventListener('click', addCurrentSelection);
+      activeTags.addEventListener('click', (e)=>{
+        const btn = e.target.closest('button.x');
+        if(!btn) return;
+        const tag = btn.getAttribute('data-tag');
+        selected.delete(tag);
         renderActiveTags();
         updateSummary();
-      }
-    }
-
-    addChipBtn.addEventListener('click', addCurrentSelection);
-
-    activeTags.addEventListener('click', (e)=>{
-      const btn = e.target.closest('button.x');
-      if(!btn) return;
-      const tag = btn.getAttribute('data-tag');
-      selected.delete(tag);
-      renderActiveTags();
-      updateSummary();
-    });
-
-    clearBtn.addEventListener('click', ()=>{
-      selected.clear();
-      renderActiveTags();
-      updateSummary();
-    });
-
-    function openDrawer(){
-      drawer.classList.add('open');
-      overlay.classList.add('open');
-      drawer.removeAttribute('aria-hidden');
-      overlay.removeAttribute('aria-hidden');
-      tagsBtn.setAttribute('aria-expanded', 'true');
-      setTimeout(()=>{ sectorSelect.focus(); }, 60);
-    }
-    function closeDrawer(){
-      drawer.classList.remove('open');
-      overlay.classList.remove('open');
-      drawer.setAttribute('aria-hidden','true');
-      overlay.setAttribute('aria-hidden','true');
-      tagsBtn.setAttribute('aria-expanded', 'false');
-      tagsBtn.focus();
-    }
-
-    tagsBtn.addEventListener('click', () => {
-      tagsBtn.animate(
-        [{ transform:'translateY(0) scale(1)' },{ transform:'translateY(1px) scale(0.98)' },{ transform:'translateY(0) scale(1)' }],
-        { duration:220, easing:'ease-out' }
-      );
-      openDrawer();
-    });
-    document.getElementById('drawer-close').addEventListener('click', closeDrawer);
-    overlay.addEventListener('click', closeDrawer);
-
-    window.addEventListener('keydown', (e)=>{
-      if(e.key === 'Escape' && drawer.classList.contains('open')){ closeDrawer(); }
-      if(e.key === 'Enter' && drawer.classList.contains('open')){ addCurrentSelection(); }
-    });
-
-    // Atajo para enfocar el buscador (sin mostrar sugerencia en UI)
-    window.addEventListener('keydown', (e) => {
-      if(e.key === '/' && !/input|textarea/i.test(document.activeElement.tagName) && !drawer.classList.contains('open')){
-        e.preventDefault();
-        searchInput.focus();
-      }
-    });
-
-    // Parallax sutil
-    const orbs = Array.from(document.querySelectorAll('.orb'));
-    let raf = 0;
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    function onMove(x, y){
-      orbs.forEach((el, i)=>{
-        const depth = (i+1) * 0.015;
-        el.style.transform = `translate3d(${(x-0.5)*30*depth}px, ${(y-0.5)*30*depth}px, 0)`;
       });
-    }
-    function handlePointer(evt){
-      if(prefersReduced) return;
-      const { innerWidth:w, innerHeight:h } = window;
-      const x = (evt.clientX ?? (evt.touches?.[0]?.clientX || w/2)) / w;
-      const y = (evt.clientY ?? (evt.touches?.[0]?.clientY || h/2)) / h;
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(()=>onMove(x,y));
-    }
-    window.addEventListener('pointermove', handlePointer, { passive:true });
-    window.addEventListener('touchmove', handlePointer, { passive:true });
+      clearBtn.addEventListener('click', ()=>{
+        selected.clear();
+        renderActiveTags();
+        updateSummary();
+      });
+
+      function openDrawer(){
+        drawer.classList.add('open');
+        overlay.classList.add('open');
+        drawer.removeAttribute('aria-hidden');
+        overlay.removeAttribute('aria-hidden');
+        tagsBtn.setAttribute('aria-expanded', 'true');
+        // foco diferido para accesibilidad
+        setTimeout(()=>{ sectorSelect.focus(); }, 80);
+      }
+      function closeDrawer(){
+        drawer.classList.remove('open');
+        overlay.classList.remove('open');
+        drawer.setAttribute('aria-hidden','true');
+        overlay.setAttribute('aria-hidden','true');
+        tagsBtn.setAttribute('aria-expanded', 'false');
+        tagsBtn.focus();
+      }
+
+      // Asegura que el botón SIEMPRE funcione aunque falle otra parte del script
+      tagsBtn.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        try {
+          tagsBtn.animate(
+            [{ transform:'translateY(0) scale(1)' },{ transform:'translateY(1px) scale(0.98)' },{ transform:'translateY(0) scale(1)' }],
+            { duration:220, easing:'ease-out' }
+          );
+        } catch(_) {}
+        openDrawer();
+      }, { passive:false });
+
+      drawerClose.addEventListener('click', closeDrawer);
+      overlay.addEventListener('click', closeDrawer);
+      window.addEventListener('keydown', (e)=>{
+        if(e.key === 'Escape' && drawer.classList.contains('open')){ closeDrawer(); }
+        if(e.key === 'Enter' && drawer.classList.contains('open')){ addCurrentSelection(); }
+      });
+
+      // Atajo para enfocar buscador
+      window.addEventListener('keydown', (e) => {
+        if(e.key === '/' && !/input|textarea/i.test(document.activeElement.tagName) && !drawer.classList.contains('open')){
+          e.preventDefault();
+          searchInput?.focus();
+        }
+      });
+
+      // Parallax sutil
+      const orbs = Array.from(document.querySelectorAll('.orb'));
+      let raf = 0;
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      function onMove(x, y){
+        orbs.forEach((el, i)=>{
+          const depth = (i+1) * 0.015;
+          el.style.transform = `translate3d(${(x-0.5)*30*depth}px, ${(y-0.5)*30*depth}px, 0)`;
+        });
+      }
+      function handlePointer(evt){
+        if(prefersReduced) return;
+        const { innerWidth:w, innerHeight:h } = window;
+        const x = (evt.clientX ?? (evt.touches?.[0]?.clientX || w/2)) / w;
+        const y = (evt.clientY ?? (evt.touches?.[0]?.clientY || h/2)) / h;
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(()=>onMove(x,y));
+      }
+      window.addEventListener('pointermove', handlePointer, { passive:true });
+      window.addEventListener('touchmove', handlePointer, { passive:true });
+    })();
   </script>
 </body>
 </html>
