@@ -1,4 +1,4 @@
-// js/index-cards.js
+// js/index-cards.js (v3)
 import { createCompanyCard } from './companyCard.js';
 import { listCompaniesForCards } from './data-local.js';
 
@@ -7,13 +7,10 @@ const $ = id => document.getElementById(id);
 let cache = null;
 let prevKey = '';
 
-// Normaliza sin Unicode property escapes
 function normalize(s){
   return (s || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 }
-function debounce(fn, ms=140){
-  let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); };
-}
+function debounce(fn, ms=140){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
 function getActiveTags(){
   const host = $('#active-tags'); if (!host) return [];
   return Array.from(host.querySelectorAll('.chip'))
@@ -27,7 +24,6 @@ function filterAll(){
   const c = (($('#country')||{}).value) || '';
   const r = (($('#region') ||{}).value) || '';
   const tagSet = new Set(getActiveTags());
-
   return ensureCache().filter(it=>{
     const byText    = !q || normalize(it.name).includes(q);
     const byCountry = !c || it.country === c;
@@ -44,7 +40,7 @@ function render(){
   const host = $('#results'); if (!host) return;
   const rows = filterAll();
 
-  console.debug('[index-cards] cache total:', ensureCache().length, '→ filtrados:', rows.length);
+  console.debug('[index-cards] render() | cache total:', ensureCache().length, '→ filtrados:', rows.length);
 
   const k = keyOf(rows);
   if (k === prevKey) return;
@@ -66,30 +62,29 @@ function render(){
 const run = debounce(render, 120);
 
 function wire(){
-  console.debug('[index-cards] wire()');
-  // filtros
+  console.debug('[index-cards] wire() start | readyState=', document.readyState);
+
   ['input','change'].forEach(ev=>{
     const s=$('#search');  if (s) s.addEventListener(ev, run);
     const c=$('#country'); if (c) c.addEventListener(ev, run);
     const r=$('#region');  if (r) r.addEventListener(ev, run);
   });
-  // etiquetas
   const at=$('#active-tags'); if (at) at.addEventListener('click', ()=> run());
   const ac=$('#add-chip');    if (ac) ac.addEventListener('click', ()=> run());
   const dc=$('#drawer-clear');if (dc) dc.addEventListener('click', ()=> run());
 
-  // cambios de localStorage (perfil guardado en otra pestaña)
-  window.addEventListener('storage', (e)=>{
-    if (e.key === 'oneiron_profiles'){ cache = null; run(); }
-  });
+  window.addEventListener('storage', (e)=>{ if (e.key === 'oneiron_profiles'){ cache = null; run(); }});
 
-  run(); // primer render
+  // primer render (y segunda pasada asincrónica por si el layout tarda)
+  run();
+  setTimeout(render, 0);
+  setTimeout(render, 200);
 }
 
-// 🔧 Inicializa incluso si DOMContentLoaded ya pasó
+// arranca siempre, incluso si DOMContentLoaded ya pasó
+console.debug('[index-cards] loaded | readyState=', document.readyState);
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', wire);
 } else {
-  // DOM ya listo
   wire();
 }
