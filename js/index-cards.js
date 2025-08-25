@@ -1,60 +1,58 @@
-// /js/index-cards.js
+// js/index-cards.js
 import { createCompanyCard } from './companyCard.js';
 import { listCompaniesForCards } from './data-local.js';
 
 const $ = id => document.getElementById(id);
 
 let cache = null;     // perfiles simplificados
-let prevKey = '';     // evita repintados idénticos
+let prevKey = '';     // evita repintados iguales
 
-function normalize(s){ return (s||'').normalize('NFD').replace(/\p{Diacritic}/gu,'').toLowerCase(); }
-function debounce(fn, ms=140){ let t; return (...args)=>{ clearTimeout(t); t = setTimeout(()=>fn(...args), ms); }; }
-
+// Normaliza sin Unicode property escapes (compatibilidad alta)
+function normalize(s){
+  return (s || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+function debounce(fn, ms=140){
+  let t; return (...args)=>{ clearTimeout(t); t = setTimeout(()=>fn(...args), ms); };
+}
 function getActiveTags(){
-  return Array.from($('#active-tags')?.querySelectorAll('.chip') || [])
+  const host = document.getElementById('active-tags');
+  if (!host) return [];
+  return Array.from(host.querySelectorAll('.chip'))
     .map(ch => ch.textContent.replace(/\s*✕\s*$/,'').trim())
     .filter(Boolean);
 }
-
-function ensureCache(){
-  if (!cache) cache = listCompaniesForCards();
-  return cache;
-}
+function ensureCache(){ if(!cache) cache = listCompaniesForCards(); return cache; }
 
 function filterAll(){
-  const q = normalize($('#search')?.value || '');
-  const c = $('#country')?.value || '';
-  const r = $('#region')?.value || '';
+  const q = normalize(($('#search')||{}).value || '');
+  const c = (($('#country')||{}).value) || '';
+  const r = (($('#region') ||{}).value) || '';
   const tagSet = new Set(getActiveTags());
 
   return ensureCache().filter(it=>{
     const byText    = !q || normalize(it.name).includes(q);
     const byCountry = !c || it.country === c;
     const byRegion  = !r || it.region  === r;
-    const byTags    = !tagSet.size || [...tagSet].every(t => (it.tags || []).includes(t));
+    const byTags    = !tagSet.size || Array.from(tagSet).every(t => Array.isArray(it.tags) && it.tags.includes(t));
     return byText && byCountry && byRegion && byTags;
   });
 }
-
 function keyOf(list){
   return list.map(x => `${x.id}|${x.name}|${x.country}|${x.region}|${(x.tags||[]).join(',')}`).join('§');
 }
 
 function render(){
-  const host = $('#results');
-  if (!host) return;
-
+  const host = $('#results'); if (!host) return;
   const rows = filterAll();
   const k = keyOf(rows);
-  if (k === prevKey) return;   // nada cambió
+  if (k === prevKey) return;
   prevKey = k;
 
   host.innerHTML = '';
   if (!rows.length){
-    host.innerHTML = '<div style="padding:16px;color:var(--muted)">Sin resultados.</div>';
+    host.innerHTML = '<div style="padding:16px;color:#6b7280">Sin resultados.</div>';
     return;
   }
-
   const wrap = document.createElement('div');
   wrap.style.cssText = 'padding:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;';
   const frag = document.createDocumentFragment();
@@ -66,24 +64,19 @@ function render(){
 const run = debounce(render, 120);
 
 function wire(){
-  // filtros
   ['input','change'].forEach(ev=>{
-    $('#search')?.addEventListener(ev, run);
-    $('#country')?.addEventListener(ev, run);
-    $('#region')?.addEventListener(ev, run);
+    const s=$('#search');  if (s) s.addEventListener(ev, run);
+    const c=$('#country'); if (c) c.addEventListener(ev, run);
+    const r=$('#region');  if (r) r.addEventListener(ev, run);
   });
-  // etiquetas
-  $('#active-tags')?.addEventListener('click', ()=> run());
-  $('#add-chip')?.addEventListener('click', ()=> run());
-  $('#drawer-clear')?.addEventListener('click', ()=> run());
+  const at=$('#active-tags'); if (at) at.addEventListener('click', ()=> run());
+  const ac=$('#add-chip');    if (ac) ac.addEventListener('click', ()=> run());
+  const dc=$('#drawer-clear');if (dc) dc.addEventListener('click', ()=> run());
 
-  // refresco si cambia localStorage desde otra pestaña
   window.addEventListener('storage', (e)=>{
     if (e.key === 'oneiron_profiles'){ cache = null; run(); }
   });
 
-  // primer render
-  run();
+  run(); // primer render
 }
-
 document.addEventListener('DOMContentLoaded', wire);

@@ -1,4 +1,4 @@
-// companyCard.js
+// js/companyCard.js
 const DEFAULT_LOGO = './assets/oneiron.png';
 
 export function createCompanyCard(data = {}) {
@@ -38,5 +38,9 @@ export function createCompanyCard(data = {}) {
   return card;
 }
 
-function escapeHtml(s=''){ return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
-function escapeAttr(s=''){ return s.replace(/"/g,'&quot;'); }
+function escapeHtml(s = '') {
+  return s.replace(/[&<>"']/g, m => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[m]));
+}
+function escapeAttr(s = '') { return s.replace(/"/g, '&quot;'); }
