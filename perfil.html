@@ -188,7 +188,7 @@
     .picker .add{ background:linear-gradient(135deg, var(--indigo-bright), var(--indigo-bright-2)); color:#fff; border:0; border-radius:12px; padding:10px 14px; cursor:pointer; box-shadow:0 8px 20px rgba(79,70,229,.22); }
     .drawer .ft{ margin:8px 0 12px; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:0 12px; }
     .ft .summary{ font-size:.9rem; color:var(--muted); }
-    .ft .clear{ border:1px solid var(--stroke); background:#fff; border-radius:12px; padding:10px 12px; cursor:pointer; }
+    .clear{ border:1px solid var(--stroke); background:#fff; border-radius:12px; padding:10px 12px; cursor:pointer; }
 
     /* Modales y confirmación */
     .modal{ position:fixed; inset:0; z-index:9999; display:none; align-items:center; justify-content:center; }
@@ -251,7 +251,7 @@
         </label>
         <div class="actions">
           <button id="add-chip" class="add" type="button">Añadir etiqueta</button>
-          <button id="drawer-clear" class="ft clear" type="button">Limpiar seleccionadas</button>
+          <button id="drawer-clear" class="clear" type="button">Limpiar seleccionadas</button>
         </div>
       </div>
     </div>
@@ -492,8 +492,8 @@
   </div>
 
   <!-- Carga datos -->
-  <script src="./countries.js"></script>
-  <script src="./sectors.js"></script>
+  <script src="./js/countries.js"></script>
+  <script src="./js/sectors.js"></script>
 
   <script>
     /* ========= Persistencia ========= */

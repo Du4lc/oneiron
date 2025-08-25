@@ -111,7 +111,7 @@
       left:50%;
       width:calc(100vw - 44px);
       margin-left:calc(-50vw + 22px);
-      display:flex; gap:12px; flex-wrap:nowrap; align-items:center;
+      display:flex; gap:12px; flex-wrap:wrap; align-items:center;
       padding:14px;
       border:1px solid var(--stroke); background:var(--glass); border-radius: calc(var(--radius) + 4px);
       box-shadow: var(--shadow-xl); backdrop-filter: blur(16px) saturate(1.08);
@@ -136,9 +136,9 @@
     .input:focus-visible, select:focus-visible, button:focus-visible{border-color:var(--indigo-bright); box-shadow:var(--ring)}
     .input:active, select:active, button:active{transform:translateY(1px)}
     /* DOBLE de largo para el campo "nombre empresa" */
-    .control{position:relative; flex:0 1 1520px; min-width:1200px}
+    .control{position:relative; flex:2 1 420px; min-width:280px}
     .control svg{position:absolute; left:12px; top:50%; transform:translateY(-50%); pointer-events:none; opacity:.8}
-    .control input{padding-left:40px; width:45%;} /* <- clave para que se vea más largo */
+    .control input{padding-left:40px; width:50%;} /* <- clave para que se vea más largo */
 
     /* Botón Etiquetas (azul cielo) */
     .tags-btn{
@@ -294,8 +294,8 @@
   </main>
 
   <!-- Datos -->
-  <script src="./countries.js"></script>
-  <script src="./sectors.js"></script>
+  <script src="./js/countries.js"></script>
+  <script src="./js/sectors.js"></script>
 
   <!-- Lógica -->
   <script>
