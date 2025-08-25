@@ -77,7 +77,7 @@ function wire(){
   $('#add-chip')?.addEventListener('click', ()=> run());
   $('#drawer-clear')?.addEventListener('click', ()=> run());
 
-  // refresco si cambia localStorage desde otra pestaña (p. ej. perfil.html)
+  // refresco si cambia localStorage desde otra pestaña
   window.addEventListener('storage', (e)=>{
     if (e.key === 'oneiron_profiles'){ cache = null; run(); }
   });
