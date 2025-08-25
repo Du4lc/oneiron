@@ -4,19 +4,18 @@ import { listCompaniesForCards } from './data-local.js';
 
 const $ = id => document.getElementById(id);
 
-let cache = null;     // perfiles simplificados
-let prevKey = '';     // evita repintados iguales
+let cache = null;
+let prevKey = '';
 
-// Normaliza sin Unicode property escapes (compatibilidad alta)
+// Normaliza sin Unicode property escapes
 function normalize(s){
   return (s || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 }
 function debounce(fn, ms=140){
-  let t; return (...args)=>{ clearTimeout(t); t = setTimeout(()=>fn(...args), ms); };
+  let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); };
 }
 function getActiveTags(){
-  const host = document.getElementById('active-tags');
-  if (!host) return [];
+  const host = $('#active-tags'); if (!host) return [];
   return Array.from(host.querySelectorAll('.chip'))
     .map(ch => ch.textContent.replace(/\s*✕\s*$/,'').trim())
     .filter(Boolean);
@@ -44,6 +43,9 @@ function keyOf(list){
 function render(){
   const host = $('#results'); if (!host) return;
   const rows = filterAll();
+
+  console.debug('[index-cards] cache total:', ensureCache().length, '→ filtrados:', rows.length);
+
   const k = keyOf(rows);
   if (k === prevKey) return;
   prevKey = k;
@@ -64,19 +66,30 @@ function render(){
 const run = debounce(render, 120);
 
 function wire(){
+  console.debug('[index-cards] wire()');
+  // filtros
   ['input','change'].forEach(ev=>{
     const s=$('#search');  if (s) s.addEventListener(ev, run);
     const c=$('#country'); if (c) c.addEventListener(ev, run);
     const r=$('#region');  if (r) r.addEventListener(ev, run);
   });
+  // etiquetas
   const at=$('#active-tags'); if (at) at.addEventListener('click', ()=> run());
   const ac=$('#add-chip');    if (ac) ac.addEventListener('click', ()=> run());
   const dc=$('#drawer-clear');if (dc) dc.addEventListener('click', ()=> run());
 
+  // cambios de localStorage (perfil guardado en otra pestaña)
   window.addEventListener('storage', (e)=>{
     if (e.key === 'oneiron_profiles'){ cache = null; run(); }
   });
 
   run(); // primer render
 }
-document.addEventListener('DOMContentLoaded', wire);
+
+// 🔧 Inicializa incluso si DOMContentLoaded ya pasó
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', wire);
+} else {
+  // DOM ya listo
+  wire();
+}
