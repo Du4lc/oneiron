@@ -1,4 +1,4 @@
-// js/index-cards.js (v6)
+// js/index-cards.js (v7)
 import { createCompanyCard } from './companyCard.js';
 import { listCompaniesForCards } from './data-local.js';
 
@@ -54,7 +54,10 @@ function keyOf(list){
 function render(){
   try{
     const host = $('#results');
-    if (!host) return; // aún no existe el contenedor
+    if (!host){
+      console.log('[index-cards] render(): #results NO existe aún');
+      return;
+    }
     const rows = filterAll();
 
     console.log('[index-cards] render() | cache total:', ensureCache().length, '→ filtrados:', rows.length);
@@ -82,10 +85,31 @@ function render(){
 
 const run = debounce(render, 120);
 
-// Espera a que #results exista y entonces pinta
+// Espera a que #results exista y entonces pinta (con MutationObserver + fallbacks)
 function renderWhenReady(){
-  if (!$('#results')) { requestAnimationFrame(renderWhenReady); return; }
-  render();
+  if ($('#results')){
+    console.log('[index-cards] renderWhenReady(): encontrado #results, pinto');
+    render();
+    return;
+  }
+  console.log('[index-cards] renderWhenReady(): esperando #results con MutationObserver');
+  const obs = new MutationObserver(() => {
+    if ($('#results')){
+      obs.disconnect();
+      console.log('[index-cards] MutationObserver: #results listo → render()');
+      render();
+    }
+  });
+  obs.observe(document.body || document.documentElement, { childList: true, subtree: true });
+
+  // Fallbacks de seguridad
+  setTimeout(() => { if (!$('#results')) console.log('[index-cards] timeout 0.2s: aún no #results'); render(); }, 200);
+  document.addEventListener('readystatechange', () => {
+    if (document.readyState === 'complete'){
+      console.log('[index-cards] readystatechange: complete → render()');
+      render();
+    }
+  }, { once:true });
 }
 
 function wire(){
@@ -102,7 +126,9 @@ function wire(){
 
     window.addEventListener('storage', (e)=>{ if (e.key === 'oneiron_profiles'){ cache = null; run(); }});
 
-    renderWhenReady(); // primer pintado cuando el contenedor exista
+    // Arranque robusto
+    renderWhenReady();          // espera #results y pinta
+    setTimeout(render, 0);      // por si ya está todo OK
   }catch(err){
     console.error('[index-cards] wire ERROR:', err);
   }
