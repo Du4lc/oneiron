@@ -1,0 +1,170 @@
+/* ONEIRON: START cards.css — tarjeta rectangular, sin estirarse de alto y con ancho mínimo cómodo */
+
+/* ====== Bandeja de resultados ======
+   - padding interior (no pegado a bordes)
+   - gap entre tarjetas
+   - ¡clave!: align-items:start para que las tarjetas NO se estiren en altura */
+.cards{
+  --gap:16px;
+  --tray-pad-x:12px;
+  --tray-pad-y:10px;
+
+  display:grid;
+
+  /* Ancho mínimo cómodo para que las etiquetas no se corten.
+     Se irán metiendo tantas columnas como quepan, cada una de >= 320px */
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--gap);
+
+  padding: var(--tray-pad-y) var(--tray-pad-x);
+
+  /* Evita que los ítems se estiren para rellenar la altura del track */
+  align-items: start;
+}
+
+/* Responsivo: si el contenedor es muy estrecho, dejamos que fluya */
+@media (max-width: 720px){
+  .cards{ grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+}
+@media (max-width: 420px){
+  .cards{ grid-template-columns: 1fr; }
+}
+
+/* ====== Tarjeta (rectangular “normal”) ======
+   Izquierda (nombre+logo), derecha (ubicación+etiquetas)
+   Altura depende del contenido (no se estira) */
+.card{
+  position:relative;
+  overflow:hidden;
+  border-radius:12px;
+
+  /* Fondo metálico suave */
+  border:1px solid #cfd6df;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.35), rgba(255,255,255,.05)) padding-box,
+    linear-gradient(135deg, #c9d2dc 0%, #f1f3f6 40%, #d5dbe3 60%, #c7ced8 100%) border-box;
+  box-shadow:
+    0 10px 18px rgba(15,23,42,.10),
+    inset 0 1px 0 rgba(255,255,255,.6),
+    inset 0 -1px 0 rgba(0,0,0,.04);
+  backdrop-filter: blur(2px);
+
+  /* Proporciones “tarjeta” */
+  padding: 12px 14px;
+
+  /* Layout interno: dos columnas, dos filas.
+     Importante: usamos 'auto auto' para que NO haya filas que se estiren. */
+  display:grid;
+  grid-template-columns: 120px 1fr;  /* izquierda fija -> estabilidad visual */
+  grid-template-rows: auto auto;     /* nombre arriba; logo debajo (no 1fr) */
+  column-gap: 14px;
+  row-gap: 8px;
+
+  /* Evita que la tarjeta se estire si el track de la grid es alto */
+  place-self: start;
+}
+
+/* Brillo diagonal sutil */
+.card::before{
+  content:"";
+  position:absolute; inset:0;
+  background:
+    linear-gradient(120deg, rgba(255,255,255,.35) 0%, rgba(255,255,255,0) 35% 65%, rgba(255,255,255,.25) 100%);
+  mix-blend-mode: screen;
+  pointer-events:none;
+  opacity:.6;
+}
+
+/* ====== Columna izquierda ====== */
+/* Nombre: 1 línea con elipsis (no debe forzar altura) */
+.card .name{
+  grid-column:1; grid-row:1;
+  font-weight:700;
+  font-size:.95rem;
+  color:#0f172a;
+  text-shadow: 0 1px 0 rgba(255,255,255,.6);
+  line-height:1.2;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+/* Logo: caja blanca compacta (como la del banner) */
+.card .logoBox{
+  grid-column:1; grid-row:2;
+  border:1px solid #e5e7eb;
+  background: linear-gradient(180deg, #fff, #f7f8fb);
+  border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  padding:8px;
+
+  /* Alturas contenidas para no inflar la tarjeta */
+  min-height: 48px;
+  max-height: 64px;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.8),
+    0 1px 0 rgba(0,0,0,.03);
+}
+.card .logoBox img{
+  max-width:92%;
+  max-height:92%;
+  object-fit:contain;
+  filter: drop-shadow(0 1px 0 rgba(0,0,0,.04));
+}
+
+/* ====== Columna derecha ====== */
+.card .right{
+  grid-column:2; grid-row:1 / span 2;
+  display:flex; flex-direction:column;
+  justify-content:flex-start;
+  gap:8px;
+  min-width:0;        /* permite elipsis en hijos si hiciera falta */
+  align-self:start;   /* NO estirar verticalmente */
+}
+
+/* País · Provincia: 1 línea con elipsis */
+.card .place{
+  font-size:.9rem;
+  font-weight:600;
+  color:#2b2f3a;
+  text-shadow: 0 1px 0 rgba(255,255,255,.5);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+/* Etiquetas: envuelven en múltiples líneas (no se cortan) */
+.card .tags{
+  display:flex;
+  flex-wrap:wrap;       /* << permite varias líneas */
+  gap:6px;
+  align-items:flex-start;
+}
+.card .tag{
+  display:inline-block;
+  vertical-align:middle;
+  font-size:.74rem;
+  line-height:1.6;
+  padding:2px 8px;
+  border-radius:999px;
+  background:linear-gradient(180deg, #f5f7fa, #eceff3);
+  border:1px solid #d7dde6;
+  color:#293041;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+
+  /* Quepan palabras largas sin cortar feo */
+  word-break: break-word;
+  white-space: normal;   /* << permite que cada chip crezca a dos líneas si lo necesita */
+  max-width: 100%;
+}
+
+/* Hover sutil */
+.card:hover{
+  box-shadow:
+    0 12px 24px rgba(15,23,42,.12),
+    inset 0 1px 0 rgba(255,255,255,.7),
+    inset 0 -1px 0 rgba(0,0,0,.03);
+  transform: translateY(-2px);
+  transition: .18s ease;
+}

@@ -202,6 +202,7 @@
 
     @media (prefers-reduced-motion: reduce){ .orb{animation:none} .drawer{transition:none} }
   </style>
+  <link rel="stylesheet" href="./css/cards.css">
 </head>
 <body>
   <div class="dream-bg" aria-hidden="true">
@@ -291,7 +292,7 @@
     </div>
 
     <!-- Resultados -->
-    <section class="results" id="results"></section>
+    <section id="results" class="results cards"></section>
   </main>
 
   <!-- Datos -->
@@ -484,5 +485,6 @@
       window.addEventListener('touchmove', handlePointer, { passive:true });
     })();
   </script>
+  <script src="./js/cards.js"></script>
 </body>
 </html>
