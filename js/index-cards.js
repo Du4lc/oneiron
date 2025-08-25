@@ -4,11 +4,16 @@ import { listCompaniesForCards } from './data-local.js';
 
 const $ = id => document.getElementById(id);
 
-let cache = null;            // perfiles simplificados
-let prevKey = '';            // para evitar repintados iguales
+let cache = null;   // perfiles simplificados
+let prevKey = '';   // para evitar repintados iguales
 
-function normalize(s){ return (s||'').normalize('NFD').replace(/\p{Diacritic}/gu,'').toLowerCase(); }
-function debounce(fn, ms=140){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
+function normalize(s){
+  return (s || '').normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+}
+function debounce(fn, ms = 140){
+  let t;
+  return (a) => { clearTimeout(t); t = setTimeout(() => fn(a), ms); };
+}
 
 function getActiveTags(){
   return Array.from($('#active-tags')?.querySelectorAll('.chip') || [])
@@ -16,7 +21,10 @@ function getActiveTags(){
     .filter(Boolean);
 }
 
-function ensureCache(){ if(!cache) cache = listCompaniesForCards(); return cache; }
+function ensureCache(){
+  if (!cache) cache = listCompaniesForCards();
+  return cache;
+}
 
 function filterAll(){
   const q = normalize($('#search')?.value || '');
@@ -24,11 +32,11 @@ function filterAll(){
   const r = $('#region')?.value || '';
   const tagSet = new Set(getActiveTags());
 
-  return ensureCache().filter(it=>{
-    const byText = !q || normalize(it.name).includes(q);
+  return ensureCache().filter(it => {
+    const byText    = !q || normalize(it.name).includes(q);
     const byCountry = !c || it.country === c;
     const byRegion  = !r || it.region === r;
-    const byTags = !tagSet.size || [...tagSet].every(t => (it.tags||[]).includes(t));
+    const byTags    = !tagSet.size || [...tagSet].every(t => (it.tags || []).includes(t));
     return byText && byCountry && byRegion && byTags;
   });
 }
@@ -69,12 +77,12 @@ function wire(){
     $('#country')?.addEventListener(ev, run);
     $('#region')?.addEventListener(ev, run);
   });
-  // etiquetas
+  // etiquetas (chips en index)
   $('#active-tags')?.addEventListener('click', ()=> run());
   $('#add-chip')?.addEventListener('click', ()=> run());
   $('#drawer-clear')?.addEventListener('click', ()=> run());
 
-  // refresco si cambia localStorage (otra pestaña)
+  // refresco si cambia localStorage (otra pestaña o al guardar en perfil)
   window.addEventListener('storage', (e)=>{
     if (e.key === 'oneiron_profiles'){ cache = null; run(); }
   });
