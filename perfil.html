@@ -117,6 +117,17 @@
     .logo-on-banner{ position:absolute; inset:0; display:grid; place-items:center; transform: translateY(18px); }
     .logo-on-banner img{ width:calc(var(--banner-h) * 0.46); height:calc(var(--banner-h) * 0.46); object-fit:contain; border-radius:24px; background:#fff; padding:12px; box-shadow:0 12px 30px rgba(15,23,42,.22) }
 
+    .banner-hint {
+      position: absolute;
+      top: 10px;
+      right: 24px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      background: rgba(255,255,255,0.7);
+      padding: 4px 8px;
+      border-radius: 8px;
+    }
+
     .uploader { position: absolute; right: 24px; bottom: 14px; display:flex; gap:12px; }
     /* Botones Banner/Logo -> color CTA de index */
     .upl { border:1px solid var(--stroke); background:linear-gradient(135deg, var(--indigo-bright), var(--indigo-bright-2)); color:#fff; padding:10px 14px; border-radius:14px; cursor:pointer; display:flex; align-items:center; gap:8px; font-weight:700; box-shadow:0 10px 24px rgba(99,102,241,.25); transition: box-shadow .2s, transform .2s; }
@@ -346,8 +357,9 @@
         <div class="logo-on-banner">
           <img id="logo" alt="Logotipo" src="./assets/oneiron.png">
         </div>
+        <div class="banner-hint" id="banner-hint">1920×440 recomendado</div>
         <div class="uploader">
-          <label class="upl" aria-label="Subir imagen de banner">
+          <label class="upl" aria-label="Subir imagen de banner" title="Se recomienda 1920×440 px (formato horizontal)">
             <input id="banner-input" type="file" accept="image/*">Banner
           </label>
           <label class="upl" aria-label="Subir logotipo">
@@ -525,7 +537,16 @@
     const defaultLogo = './assets/oneiron.png';
 
     function readStore(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)) || {}; }catch{ return {}; } }
-    function writeStore(obj){ localStorage.setItem(LS_KEY, JSON.stringify(obj)); }
+    function writeStore(obj){
+      try{
+        localStorage.setItem(LS_KEY, JSON.stringify(obj));
+      }catch(e){
+        console.error('Error guardando en localStorage', e);
+        alert('No se han podido guardar los cambios: el tamaño total supera el límite del navegador.\n' +
+              'Reduce el peso de las imágenes (banner/logo) e inténtalo de nuevo.');
+        throw e; // para que NO se muestre "Perfil guardado."
+      }
+    }
     function loadProfile(){ const store = readStore(); return store[currentUser] || { name:'', desc:'', tags:[], country:'', region:'', banner:'', logo:'' , proyectos:[], productos:[]}; }
     function saveProfile(profile){ const store = readStore(); store[currentUser] = profile; writeStore(store); }
 
@@ -533,6 +554,7 @@
     const bannerEl = document.getElementById('banner');
     const logoEl = document.getElementById('logo');
     const bannerInput = document.getElementById('banner-input');
+    const bannerHint = document.getElementById('banner-hint');
     const logoInput = document.getElementById('logo-input');
     const resetMediaBtn = document.getElementById('reset-media');
     const nameInput = document.getElementById('company-name');
@@ -639,9 +661,57 @@
 
     /* ========= Imágenes ========= */
     function readImage(file, cb){ const r=new FileReader(); r.onload=e=>cb(e.target.result); r.readAsDataURL(file); }
-    bannerInput.addEventListener('change', ()=>{ const f=bannerInput.files?.[0]; if(!f) return; readImage(f, (data)=>{ bannerEl.style.backgroundImage = `url(${data})`; current.banner = data; }); });
+
+    // === Helpers para redimensionar/comprimir el banner ===
+    async function readFileAsImage(file){
+      const dataUrl = await new Promise(res => {
+        const r = new FileReader();
+        r.onload = e => res(e.target.result);
+        r.readAsDataURL(file);
+      });
+      const img = await new Promise(res => {
+        const i = new Image();
+        i.onload = () => res(i);
+        i.src = dataUrl;
+      });
+      return img;
+    }
+
+    // "cover" centrado a 1920x440 y exportado a JPEG ~0.82
+    async function makeBannerDataURL(file, targetW=1920, targetH=440, quality=0.82){
+      const img = await readFileAsImage(file);
+      const canvas = document.createElement('canvas');
+      canvas.width = targetW;
+      canvas.height = targetH;
+      const ctx = canvas.getContext('2d');
+
+      const scale = Math.max(targetW / img.width, targetH / img.height);
+      const drawW = img.width * scale;
+      const drawH = img.height * scale;
+      const dx = (targetW - drawW) / 2;
+      const dy = (targetH - drawH) / 2;
+
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, dx, dy, drawW, drawH);
+
+      return canvas.toDataURL('image/jpeg', quality);
+    }
+
+    bannerInput.addEventListener('change', async ()=>{
+      const f = bannerInput.files?.[0];
+      if(!f) return;
+      try{
+        // 1920x440 encaja perfecto con --banner-h: 220px (2x para HiDPI)
+        const data = await makeBannerDataURL(f, 1920, 440, 0.82);
+        bannerEl.style.backgroundImage = `url(${data})`;
+        current.banner = data; // mucho más ligero -> no rompe la cuota
+        bannerHint.style.display = 'none'; // 👈 oculta el hint
+      }catch(e){
+        alert('No se pudo procesar la imagen del banner.');
+      }
+    });
     logoInput.addEventListener('change', ()=>{ const f=logoInput.files?.[0]; if(!f) return; readImage(f, (data)=>{ logoEl.src = data; current.logo = data; }); });
-    resetMediaBtn.addEventListener('click', ()=>{ bannerEl.style.backgroundImage = defaultBanner; logoEl.src = defaultLogo; current.banner=''; current.logo=''; });
+    resetMediaBtn.addEventListener('click', ()=>{ bannerEl.style.backgroundImage = defaultBanner; logoEl.src = defaultLogo; current.banner=''; current.logo=''; bannerHint.style.display = ''; });
 
     /* ========= Editor enriquecido ========= */
 
@@ -971,6 +1041,10 @@
     function hydrate(){
       bannerEl.style.backgroundImage = current.banner ? `url(${current.banner})` : defaultBanner;
       logoEl.src = current.logo || defaultLogo;
+
+      // 👇 controla la visibilidad inicial del hint
+      bannerHint.style.display = current.banner ? 'none' : '';
+
       nameInput.value = current.name || '';
       descEditor.innerHTML = current.desc || '';
       // Tras hidratar, garantizamos caret para que la toolbar funcione al instante
