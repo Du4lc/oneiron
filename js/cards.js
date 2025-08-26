@@ -24,8 +24,8 @@
 
     const store = getStore();
 
-    // Recorremos SOLO perfiles (no mostramos correo)
-    Object.values(store).forEach(profile => {
+    // Recorremos perfiles conservando la clave (user id) para enlazar a la vista
+    Object.entries(store).forEach(([userKey, profile]) => {
       const name    = (profile?.name || '').trim() || 'Empresa sin nombre';
       const logo    = profile?.logo || DEFAULT_LOGO;
       const country = (profile?.country || '').trim();
@@ -35,6 +35,7 @@
 
       const card = document.createElement('article');
       card.className = 'card';
+      card.style.cursor = 'pointer';
       card.innerHTML = `
         <!-- Columna izquierda: nombre arriba, logo debajo -->
         <div class="name" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
@@ -52,6 +53,12 @@
           </div>
         </div>
       `;
+
+      // Al clicar, ir al perfil en la MISMA pestaña
+      card.addEventListener('click', () => {
+        window.location.href = `./perfil-empresa.html?user=${encodeURIComponent(userKey)}`;
+      });
+
       container.appendChild(card);
     });
   }

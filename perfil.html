@@ -11,7 +11,7 @@
       --bg:#f7f9fc; --card:#ffffffee; --glass:#ffffffb8; --soft:#f3f6fb80; --stroke:#d1d9e680; --text:#0f172a; --muted:#6b7280;
       --radius:16px; --shadow-xl:0 10px 30px rgba(20,24,60,.12), 0 2px 8px rgba(20,24,60,.08); --ring:0 0 0 6px rgba(79,70,229,.18);
       --ok:#16a34a; --err:#ef4444;
-      --sidebar-w: 260px; --gap: 18px; --banner-h: 300px;
+      --sidebar-w: 260px; --gap: 18px; --banner-h: 220px;
 
       /* Colores clave (como en index) */
       --indigo-bright:#6366f1;      /* CTA claro/brillante */
@@ -111,11 +111,11 @@
       border-radius:0; display:grid; place-items:center; z-index:8;
     }
     .banner{ position:absolute; inset:0; background-size:cover; background-position:center; filter:saturate(1) contrast(1); }
-    .banner-overlay{ position:absolute; inset:0; background:radial-gradient(800px 300px at 50% 0%, rgba(255,255,255,.18), transparent 60%), linear-gradient(to bottom, rgba(255,255,255,.15), rgba(255,255,255,.02)); pointer-events:none }
+    .banner-overlay{ position:absolute; inset:0; background:radial-gradient(800px 260px at 50% 0%, rgba(255,255,255,.18), transparent 60%), linear-gradient(to bottom, rgba(255,255,255,.15), rgba(255,255,255,.02)); pointer-events:none }
     .logo-on-banner{ position:absolute; inset:0; display:grid; place-items:center; }
-    .logo-on-banner img{ width:140px; height:140px; object-fit:contain; border-radius:24px; background:#fff; padding:12px; box-shadow:0 12px 30px rgba(15,23,42,.22) }
+    .logo-on-banner img{ width:calc(var(--banner-h) * 0.46); height:calc(var(--banner-h) * 0.46); object-fit:contain; border-radius:24px; background:#fff; padding:12px; box-shadow:0 12px 30px rgba(15,23,42,.22) }
 
-    .uploader { position: absolute; right: 28px; bottom: 18px; display:flex; gap:12px; }
+    .uploader { position: absolute; right: 24px; bottom: 14px; display:flex; gap:12px; }
     /* Botones Banner/Logo -> color CTA de index */
     .upl { border:1px solid var(--stroke); background:linear-gradient(135deg, var(--indigo-bright), var(--indigo-bright-2)); color:#fff; padding:10px 14px; border-radius:14px; cursor:pointer; display:flex; align-items:center; gap:8px; font-weight:700; box-shadow:0 10px 24px rgba(99,102,241,.25); transition: box-shadow .2s, transform .2s; }
     .upl:hover { filter:brightness(1.05) saturate(1.02); transform:translateY(-1px); }
@@ -213,6 +213,20 @@
 
     .gallery-row{ display:flex; gap:8px; flex-wrap:wrap; margin:6px 0 8px; }
     .gallery-row img{ height:110px; width:auto; object-fit:cover; border-radius:12px; border:1px solid var(--stroke); background:#fff; }
+
+    /* Botón quitar sobre imágenes */
+    .thumb{
+      position:relative; display:inline-block;
+    }
+    .thumb img{ display:block; }
+    .thumb .rm{
+      position:absolute; top:6px; right:6px;
+      border:1px solid #fecaca; background:#fee2e2; color:#b91c1c;
+      border-radius:999px; width:26px; height:26px; display:grid; place-items:center;
+      cursor:pointer; box-shadow:0 4px 10px rgba(239,68,68,.25);
+    }
+    .thumb .rm svg{ width:14px; height:14px; }
+
     .item-desc{ color:var(--muted); margin:.35rem 0 0; }
     .item-desc a{ color:#2563eb; text-decoration:none; }
     .item-desc a:hover{ text-decoration:underline; }
@@ -440,6 +454,7 @@
           </div>
           <label class="label" for="proy-fotos">Fotos del proyecto</label>
           <input id="proy-fotos" type="file" accept="image/*" multiple>
+          <div id="proy-fotos-preview" class="gallery-row" aria-live="polite"></div>
           <div class="actions-row">
             <button class="btn ghost" data-close="#modal-proyecto">Cancelar</button>
             <button class="btn" id="save-proyecto">Guardar</button>
@@ -466,6 +481,7 @@
           </div>
           <label class="label" for="prod-fotos">Fotos del producto</label>
           <input id="prod-fotos" type="file" accept="image/*" multiple>
+          <div id="prod-fotos-preview" class="gallery-row" aria-live="polite"></div>
           <div class="actions-row">
             <button class="btn ghost" data-close="#modal-producto">Cancelar</button>
             <button class="btn" id="save-producto">Guardar</button>
@@ -861,6 +877,53 @@
       }));
     }
 
+    /* ======= Gestor de file inputs con preview y quitar ======= */
+    function setupImagePicker(inputEl, previewEl){
+      let files = []; // estado editable
+
+      function render(){
+        previewEl.innerHTML = '';
+        files.forEach((file, idx)=>{
+          const url = URL.createObjectURL(file);
+          const wrap = document.createElement('div');
+          wrap.className = 'thumb';
+          wrap.innerHTML = `
+            <img src="${url}" alt="" height="110" />
+            <button type="button" class="rm" aria-label="Quitar imagen" data-idx="${idx}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>`;
+          previewEl.appendChild(wrap);
+        });
+      }
+
+      function syncToInput(){
+        const dt = new DataTransfer();
+        files.forEach(f => dt.items.add(f));
+        inputEl.files = dt.files;
+      }
+
+      inputEl.addEventListener('change', ()=>{
+        files = [...files, ...Array.from(inputEl.files||[])];
+        syncToInput();
+        render();
+      });
+
+      previewEl.addEventListener('click', (e)=>{
+        const btn = e.target.closest('.rm');
+        if(!btn) return;
+        const idx = +btn.getAttribute('data-idx');
+        files.splice(idx,1);
+        syncToInput();
+        render();
+      });
+
+      return {
+        reset(){ files = []; syncToInput(); render(); }
+      };
+    }
+
     function createItemCardHTML(item){
       const imagesHTML = (item.imagenes && item.imagenes.length)
         ? `<div class="gallery-row">${item.imagenes.map(src=>`<img src="${src}" alt="">`).join('')}</div>`
@@ -870,12 +933,20 @@
         <div class="section-bd">
           <div class="item-head">
             <div class="item-title">${item.titulo || 'Sin título'}</div>
-            <button class="delete-btn" title="Borrar" data-id="${item.id}" aria-label="Borrar">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <button class="edit-btn" title="Editar" data-id="${item.id}" aria-label="Editar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 20h9"/><path d="M16.5 3.5l4 4L7 21l-4 1 1-4L16.5 3.5z"/>
+                </svg>
+              </button>
+              <button class="delete-btn" title="Borrar" data-id="${item.id}" aria-label="Borrar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
           </div>
           ${imagesHTML}
           <div class="item-desc">${htmlDesc}</div>
@@ -915,6 +986,30 @@
       (current.productos||[]).forEach(p=> appendCard('productos-list', p));
     }
     hydrate();
+
+    // === Inicializa pickers de los modales ===
+    const proyPicker = setupImagePicker(
+      document.getElementById('proy-fotos'),
+      document.getElementById('proy-fotos-preview')
+    );
+    const prodPicker = setupImagePicker(
+      document.getElementById('prod-fotos'),
+      document.getElementById('prod-fotos-preview')
+    );
+
+    // Resets rápidos al cerrar modales (los reutilizaremos)
+    function resetProyectoModal(){
+      document.getElementById('proy-nombre').value='';
+      document.getElementById('proy-desc').innerHTML='';
+      document.getElementById('proy-fotos').value='';
+      proyPicker.reset();
+    }
+    function resetProductoModal(){
+      document.getElementById('prod-nombre').value='';
+      document.getElementById('prod-desc').innerHTML='';
+      document.getElementById('prod-fotos').value='';
+      prodPicker.reset();
+    }
 
     /* ========= Scroll con offset del banner + activo en índice ========= */
     function getBannerHeight(){
@@ -970,46 +1065,96 @@
         const sel = btn.getAttribute('data-close');
         const m = document.querySelector(sel);
         if(m) closeModal(m);
+        if(m === modalProyecto){
+          resetProyectoModal();
+          editing = null;
+          tempExistingImages = [];
+        }
+        if(m === modalProducto){
+          resetProductoModal();
+          editing = null;
+          tempExistingImages = [];
+        }
       });
     });
 
     window.addEventListener('click', (e)=>{
-      if(e.target === modalProyecto) closeModal(modalProyecto);
-      if(e.target === modalProducto) closeModal(modalProducto);
+      if(e.target === modalProyecto){
+        closeModal(modalProyecto);
+        resetProyectoModal();
+        editing = null;
+        tempExistingImages = [];
+      }
+      if(e.target === modalProducto){
+        closeModal(modalProducto);
+        resetProductoModal();
+        editing = null;
+        tempExistingImages = [];
+      }
     });
 
-    // Guardar proyecto
+    // Guardar PROYECTO (crear o editar)
     document.getElementById('save-proyecto').addEventListener('click', async ()=>{
       const titulo = (document.getElementById('proy-nombre').value || '').trim();
       const descripcion  = document.getElementById('proy-desc').innerHTML || '';
-      const files = document.getElementById('proy-fotos').files;
-      const imagenes = await readFilesAsDataUrls(files);
-      const item = { id: uid(), titulo, descripcion, imagenes };
+      const nuevas = await filesToDataURLs(document.getElementById('proy-fotos').files);
+      const imagenes = (editing && editing.type==='proyectos')
+        ? [...tempExistingImages, ...nuevas]
+        : nuevas;
 
-      current.proyectos = current.proyectos || [];
-      current.proyectos.push(item);
-      saveProfile(current);
-      appendCard('proyectos-list', item);
+      if(editing && editing.type==='proyectos'){
+        const arr = current.proyectos || [];
+        const idx = editing.idx;
+        const old = arr[idx];
+        const updated = { ...old, titulo, descripcion, imagenes };
+        arr[idx] = updated;
+        current.proyectos = arr;
+        saveProfile(current);
+        const card = document.querySelector(`#proyectos-list [data-id="${updated.id}"]`);
+        if(card) card.innerHTML = createItemCardHTML(updated);
+      }else{
+        const item = { id: uid(), titulo, descripcion, imagenes };
+        current.proyectos = current.proyectos || [];
+        current.proyectos.push(item);
+        saveProfile(current);
+        appendCard('proyectos-list', item);
+      }
 
+      editing = null; tempExistingImages = [];
       closeModal(modalProyecto);
-      document.getElementById('proy-nombre').value=''; document.getElementById('proy-desc').innerHTML=''; document.getElementById('proy-fotos').value='';
+      resetProyectoModal();
     });
 
-    // Guardar producto
+    // Guardar PRODUCTO (crear o editar)
     document.getElementById('save-producto').addEventListener('click', async ()=>{
       const titulo = (document.getElementById('prod-nombre').value || '').trim();
       const descripcion  = document.getElementById('prod-desc').innerHTML || '';
-      const files = document.getElementById('prod-fotos').files;
-      const imagenes = await readFilesAsDataUrls(files);
-      const item = { id: uid(), titulo, descripcion, imagenes };
+      const nuevas = await filesToDataURLs(document.getElementById('prod-fotos').files);
+      const imagenes = (editing && editing.type==='productos')
+        ? [...tempExistingImages, ...nuevas]
+        : nuevas;
 
-      current.productos = current.productos || [];
-      current.productos.push(item);
-      saveProfile(current);
-      appendCard('productos-list', item);
+      if(editing && editing.type==='productos'){
+        const arr = current.productos || [];
+        const idx = editing.idx;
+        const old = arr[idx];
+        const updated = { ...old, titulo, descripcion, imagenes };
+        arr[idx] = updated;
+        current.productos = arr;
+        saveProfile(current);
+        const card = document.querySelector(`#productos-list [data-id="${updated.id}"]`);
+        if(card) card.innerHTML = createItemCardHTML(updated);
+      }else{
+        const item = { id: uid(), titulo, descripcion, imagenes };
+        current.productos = current.productos || [];
+        current.productos.push(item);
+        saveProfile(current);
+        appendCard('productos-list', item);
+      }
 
+      editing = null; tempExistingImages = [];
       closeModal(modalProducto);
-      document.getElementById('prod-nombre').value=''; document.getElementById('prod-desc').innerHTML=''; document.getElementById('prod-fotos').value='';
+      resetProductoModal();
     });
 
     /* ========= Borrado con confirmación ========= */
@@ -1056,6 +1201,107 @@
       const id = btn.getAttribute('data-id');
       openConfirm({ type: 'productos', id });
     });
+
+    /* ======= Edición de items ======= */
+    let editing = null; // { type:'proyectos'|'productos', id:string, idx:number }
+    let tempExistingImages = []; // dataURLs del item actual (se pueden quitar)
+
+    /* Renderiza miniaturas de imágenes YA guardadas (en edición) con quitar */
+    function renderExistingImages(container){
+      container.innerHTML = '';
+      tempExistingImages.forEach((src, idx)=>{
+        const wrap = document.createElement('div');
+        wrap.className = 'thumb';
+        wrap.innerHTML = `
+          <img src="${src}" alt="" height="110" />
+          <button type="button" class="rm" aria-label="Quitar imagen existente" data-idx="${idx}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>`;
+        container.appendChild(wrap);
+      });
+    }
+
+    /* Abre modal de edición con datos precargados */
+    function openEdit(type, id){
+      const arr = current[type] || [];
+      const idx = arr.findIndex(x => x.id === id);
+      if(idx < 0) return;
+      const item = arr[idx];
+      editing = { type, id, idx };
+      tempExistingImages = [...(item.imagenes || [])];
+
+      if(type === 'proyectos'){
+        document.getElementById('proy-nombre').value = item.titulo || '';
+        document.getElementById('proy-desc').innerHTML = item.descripcion || '';
+        proyPicker.reset(); // limpiamos nuevas
+        openModal(modalProyecto);
+
+        // contenedor de EXISTENTES (si no existe, se crea sobre la marcha, encima del input)
+        let holder = document.getElementById('proy-fotos-preview-existing');
+        if(!holder){
+          holder = document.createElement('div');
+          holder.id = 'proy-fotos-preview-existing';
+          holder.className = 'gallery-row';
+          const fileInput = document.getElementById('proy-fotos');
+          fileInput.parentNode.insertBefore(holder, fileInput);
+          holder.addEventListener('click', (e)=>{
+            const btn = e.target.closest('.rm');
+            if(!btn) return;
+            const i = +btn.getAttribute('data-idx');
+            tempExistingImages.splice(i,1);
+            renderExistingImages(holder);
+          });
+        }
+        renderExistingImages(holder);
+      }else{
+        document.getElementById('prod-nombre').value = item.titulo || '';
+        document.getElementById('prod-desc').innerHTML = item.descripcion || '';
+        prodPicker.reset();
+        openModal(modalProducto);
+
+        let holder = document.getElementById('prod-fotos-preview-existing');
+        if(!holder){
+          holder = document.createElement('div');
+          holder.id = 'prod-fotos-preview-existing';
+          holder.className = 'gallery-row';
+          const fileInput = document.getElementById('prod-fotos');
+          fileInput.parentNode.insertBefore(holder, fileInput);
+          holder.addEventListener('click', (e)=>{
+            const btn = e.target.closest('.rm');
+            if(!btn) return;
+            const i = +btn.getAttribute('data-idx');
+            tempExistingImages.splice(i,1);
+            renderExistingImages(holder);
+          });
+        }
+        renderExistingImages(holder);
+      }
+    }
+
+    /* Delegación para botón Editar (lápiz) */
+    document.getElementById('proyectos-list').addEventListener('click', (e)=>{
+      const btn = e.target.closest('.edit-btn');
+      if(!btn) return;
+      openEdit('proyectos', btn.getAttribute('data-id'));
+    });
+    document.getElementById('productos-list').addEventListener('click', (e)=>{
+      const btn = e.target.closest('.edit-btn');
+      if(!btn) return;
+      openEdit('productos', btn.getAttribute('data-id'));
+    });
+
+    /* Helper para pasar Files a dataURL (reutilizado al guardar) */
+    async function filesToDataURLs(fileList){
+      const files = Array.from(fileList||[]);
+      const urls = await Promise.all(files.map(f => new Promise(res=>{
+        const r = new FileReader();
+        r.onload = e => res(e.target.result);
+        r.readAsDataURL(f);
+      })));
+      return urls;
+    }
 
     saveBtn.addEventListener('click', ()=>{
       const totalWords = countWordsFromHTML(descEditor.innerHTML);
