@@ -36,20 +36,33 @@
       const card = document.createElement('article');
       card.className = 'card';
       card.style.cursor = 'pointer';
+
+      // === CLAVE PARA FILTROS: dataset y atributos ===
+      card.dataset.name = name;
+      card.dataset.country = country;
+      card.dataset.region = region;
+      // para compatibilidad con el extractor: también como atributo crudo
+      card.setAttribute('data-tags', JSON.stringify(safeTags));
+
+      // Partes de la UI con data-field y data-tag (fallbacks del extractor)
+      const countryHTML = country ? `<span data-field="country">${escapeHtml(country)}</span>` : '';
+      const sepHTML = (country && region) ? ' · ' : '';
+      const regionHTML = region ? `<span data-field="region">${escapeHtml(region)}</span>` : '';
+
       card.innerHTML = `
         <!-- Columna izquierda: nombre arriba, logo debajo -->
-        <div class="name" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
+        <div class="name" data-field="name" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
         <div class="logoBox">
           <img src="${escapeHtml(logo)}" alt="logo ${escapeHtml(name)}" loading="lazy">
         </div>
 
         <!-- Columna derecha: ubicación y etiquetas -->
         <div class="right">
-          <div class="place" title="${escapeHtml(country + (country && region ? ' · ' : '') + region)}">
-            ${escapeHtml(country)}${country && region ? ' · ' : ''}${escapeHtml(region)}
+          <div class="place" title="${escapeHtml((country||'') + (country && region ? ' · ' : '') + (region||''))}">
+            ${countryHTML}${sepHTML}${regionHTML}
           </div>
           <div class="tags">
-            ${safeTags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}
+            ${safeTags.map(t => `<span class="tag" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</span>`).join('')}
           </div>
         </div>
       `;

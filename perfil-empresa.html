@@ -11,7 +11,12 @@
       --bg:#f7f9fc; --card:#ffffffee; --glass:#ffffffb8; --soft:#f3f6fb80; --stroke:#d1d9e680; --text:#0f172a; --muted:#6b7280;
       --radius:16px; --shadow-xl:0 10px 30px rgba(20,24,60,.12), 0 2px 8px rgba(20,24,60,.08); --ring:0 0 0 6px rgba(79,70,229,.18);
       --ok:#16a34a; --err:#ef4444;
-      --sidebar-w: 260px; --gap: 18px; --banner-h: 300px;
+      --sidebar-w: 260px; --gap: 18px;
+
+      /* MISMO alto que index/perfil editado */
+      --banner-h: 220px;
+      /* Desplazamiento del logo para que no “corte” con la barra superior (consistente con index) */
+      --logo-shift: 18px;
 
       /* Colores clave (como en index) */
       --indigo-bright:#6366f1; 
@@ -100,19 +105,39 @@
     .section-hd h2{ margin:0; font-size:1.05rem; letter-spacing:.2px }
     .section-bd{ padding:14px; }
 
-    /* Banner fijo arriba */
-    #sec-banner{ height:0; margin:0; }
-    #sec-banner .section-bd{ padding:0; height:0; }
-    #sec-banner .card{ background:transparent; border:0; box-shadow:none; }
+    /* Banner fijo arriba (solo capa fija, sin card para evitar barra blanca) */
     .banner-wrap{
       position:fixed; top:0; left:0; width:100vw; height:var(--banner-h);
       background:linear-gradient(135deg, var(--banner-start), var(--banner-end));
       border-radius:0; display:grid; place-items:center; z-index:8;
     }
     .banner{ position:absolute; inset:0; background-size:cover; background-position:center; filter:saturate(1) contrast(1); }
-    .banner-overlay{ position:absolute; inset:0; background:radial-gradient(800px 300px at 50% 0%, rgba(255,255,255,.18), transparent 60%), linear-gradient(to bottom, rgba(255,255,255,.15), rgba(255,255,255,.02)); pointer-events:none }
+    .banner-overlay{
+      position:absolute; inset:0;
+      /* igual que index/perfil (ligeramente más bajo) */
+      background:radial-gradient(800px 260px at 50% 0%, rgba(255,255,255,.18), transparent 60%),
+                 linear-gradient(to bottom, rgba(255,255,255,.15), rgba(255,255,255,.02));
+      pointer-events:none;
+    }
     .logo-on-banner{ position:absolute; inset:0; display:grid; place-items:center; }
-    .logo-on-banner img{ width:140px; height:140px; object-fit:contain; border-radius:24px; background:#fff; padding:12px; box-shadow:0 12px 30px rgba(15,23,42,.22) }
+    .logo-on-banner img{
+      width: calc(var(--banner-h) * 0.46);
+      height: calc(var(--banner-h) * 0.46);
+      object-fit:contain; border-radius:24px; background:#fff; padding:12px;
+      box-shadow:0 12px 30px rgba(15,23,42,.22);
+      transform: translateY(var(--logo-shift)); /* baja el logo como en index */
+    }
+
+    /* Botón Compartir en el banner (abajo-derecha) */
+    .share-btn{
+      position:absolute; right:18px; bottom:14px;
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 14px; border-radius:14px; border:1px solid transparent;
+      background:linear-gradient(135deg, var(--indigo-bright), var(--indigo-bright-2));
+      color:#fff; font-weight:700; cursor:pointer;
+      box-shadow:0 10px 24px rgba(99,102,241,.25);
+    }
+    .share-btn:hover{ filter:brightness(1.05) saturate(1.02); }
 
     .row{ display:grid; gap:10px; margin:10px 0 }
     .label{ font-size:.92rem; color:var(--muted) }
@@ -145,7 +170,21 @@
     <div class="grain"></div>
   </div>
 
-  <!-- Índice lateral (idéntico) + botón Inicio y NUEVO botón Compartir -->
+  <!-- Banner fijo arriba (sin card para evitar barra blanca) -->
+  <div class="banner-wrap" id="banner-wrap">
+    <div class="banner" id="banner" role="img" aria-label="Imagen de cabecera"></div>
+    <div class="banner-overlay"></div>
+    <div class="logo-on-banner"><img id="logo" alt="Logotipo" src="./assets/oneiron.png"></div>
+    <button id="share-link" class="share-btn" title="Compartir perfil" type="button" aria-label="Compartir">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+        <path d="M8.59 13.51l6.83 3.98M15.41 6.51L8.59 10.49"/>
+      </svg>
+      Compartir
+    </button>
+  </div>
+
+  <!-- Índice lateral (se eliminó el enlace “Compartir” del índice) -->
   <aside class="sidebar" aria-label="Índice">
     <div class="side-title">Navegación</div>
     <nav class="side-nav" id="side-nav">
@@ -153,14 +192,6 @@
         <span class="left">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9"/><path d="M9 21V9h6v12"/></svg>
           Inicio
-        </span>
-      </a>
-
-      <!-- NUEVO: compartir -->
-      <a href="#" id="share-link" class="btn-link" title="Compartir perfil">
-        <span class="left">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51L8.59 10.49"/></svg>
-          Compartir
         </span>
       </a>
 
@@ -213,18 +244,6 @@
 
   <main class="layout">
     <section class="panel">
-
-      <!-- Banner fijo arriba (sin uploader, solo vista) -->
-      <article class="card" id="sec-banner" aria-label="Banner y logotipo">
-        <div class="section-bd">
-          <div class="banner-wrap" id="banner-wrap">
-            <div class="banner" id="banner" role="img" aria-label="Imagen de cabecera"></div>
-            <div class="banner-overlay"></div>
-            <div class="logo-on-banner"><img id="logo" alt="Logotipo" src="./assets/oneiron.png"></div>
-          </div>
-        </div>
-      </article>
-
       <!-- Nombre (solo lectura) -->
       <article class="card" id="sec-nombre" aria-label="Nombre de la empresa">
         <div class="section-hd"><h2>Nombre</h2></div>
@@ -496,7 +515,7 @@
       window.addEventListener('pointermove', handlePointer, {passive:true});
       window.addEventListener('touchmove', handlePointer, {passive:true});
 
-      /* ---------- compartir ---------- */
+      /* ---------- compartir (botón en el banner) ---------- */
       document.getElementById('share-link')?.addEventListener('click', async (e)=>{
         e.preventDefault();
         const url = location.origin + location.pathname + '?user=' + encodeURIComponent(currentUser);

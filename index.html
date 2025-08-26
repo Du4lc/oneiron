@@ -33,7 +33,10 @@
       --radius:16px;
       --shadow-xl: 0 10px 30px rgba(20, 24, 60, .12), 0 2px 8px rgba(20,24,60,.08);
       --ring: 0 0 0 6px rgba(79,70,229,.18);
-      --banner-h: 300px;
+
+      /* Alturas */
+      --header-h: 62px;             /* NUEVO: altura de la barra */
+      --banner-h: 220px;            /* misma altura que perfil (≈300px - 2cm) */
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -75,16 +78,29 @@
       display:grid; place-items:center; z-index:8;
     }
     .hero .overlay{ position:absolute; inset:0;
-      background:radial-gradient(800px 300px at 50% 0%, rgba(255,255,255,.18), transparent 60%),
-                 linear-gradient(to bottom, rgba(255,255,255,.15), rgba(255,255,255,.02));
+      /* ligera reducción del radial para banner más bajo */
+      background:radial-gradient(800px 260px at 50% 0%, rgba(255,255,255,.18), transparent 60%),
+                 linear-gradient(to bottom, rgba(255,255,255,.14), rgba(255,255,255,.02));
       pointer-events:none;
     }
-    .hero .logo{ position:absolute; inset:0; display:grid; place-items:center; }
-    .hero .logo img{ width:140px; height:140px; object-fit:contain; border-radius:24px; background:#fff; padding:12px; box-shadow:0 12px 30px rgba(15,23,42,.22) }
+    .hero .logo{
+      position:absolute; inset:0;
+      display:grid;
+      align-content:start;             /* NUEVO: alinear arriba del contenedor */
+      justify-items:center;            /* centrado horizontal */
+      padding-top: calc(var(--header-h) + 14px); /* NUEVO: bajar bajo la barra */
+    }
+    .hero .logo img{
+      /* antes fijo 140px; ahora depende del alto del banner */
+      width: calc(var(--banner-h) * 0.46);
+      height: calc(var(--banner-h) * 0.46);
+      object-fit:contain; border-radius:24px; background:#fff; padding:12px;
+      box-shadow:0 12px 30px rgba(15,23,42,.22)
+    }
 
     /* Barra superior (más clara que el banner) */
     header{
-      position:fixed; top:0; left:0; right:0; height:62px; z-index:9;
+      position:fixed; top:0; left:0; right:0; height:var(--header-h); z-index:9;
       display:flex; align-items:center; justify-content:flex-end;
       padding:0 22px; gap:10px;
       background:linear-gradient(135deg, var(--bar-start), var(--bar-end));
@@ -278,7 +294,8 @@
 
         <label aria-label="Seleccionar país">
           <select id="country">
-            <option value="" selected disabled>país</option>
+            <!-- NUEVO: opción predeterminada seleccionable (no deshabilitada) -->
+            <option value="" selected>país</option>
           </select>
         </label>
 
@@ -318,13 +335,21 @@
         country.addEventListener('change', () => {
           const sel = country.value;
           region.innerHTML = '<option value="" selected>provincia / estado</option>';
-          if (!sel){ region.disabled = true; return; }
+          if (!sel){ 
+            // volver al estado predeterminado
+            region.disabled = true; 
+            applyFilters(); 
+            return; 
+          }
           window.countryData[sel].forEach(r => {
             const o = document.createElement('option');
             o.value = r; o.textContent = r; region.appendChild(o);
           });
           region.disabled = false;
+          applyFilters();
         }, { passive:true });
+
+        region.addEventListener('change', () => applyFilters(), { passive:true });
       }
 
       /* Drawer de etiquetas */
@@ -403,6 +428,7 @@
           selected.add(label);
           renderActiveTags();
           updateSummary();
+          applyFilters();
         }
       }
 
@@ -414,11 +440,13 @@
         selected.delete(tag);
         renderActiveTags();
         updateSummary();
+        applyFilters();
       });
       clearBtn.addEventListener('click', ()=>{
         selected.clear();
         renderActiveTags();
         updateSummary();
+        applyFilters();
       });
 
       function openDrawer(){
@@ -483,6 +511,92 @@
       }
       window.addEventListener('pointermove', handlePointer, { passive:true });
       window.addEventListener('touchmove', handlePointer, { passive:true });
+
+      /* ------------ FILTROS EN RESULTADOS ------------ */
+
+      const resultsEl = $('results');
+
+      function norm(s){
+        return (s||'').toString().normalize('NFD').replace(/\p{Diacritic}+/gu,'').toLowerCase().trim();
+      }
+
+      function getCardData(card){
+        // 1) data-attributes si existen
+        const name = card.dataset.name || card.getAttribute('data-name') || '';
+        const country = card.dataset.country || card.getAttribute('data-country') || '';
+        const regionVal = card.dataset.region || card.getAttribute('data-region') || '';
+        let tagsAttr = card.dataset.tags || card.getAttribute('data-tags') || '';
+
+        let tags = [];
+        if(tagsAttr){
+          try{
+            // puede venir como JSON ["A","B"] o como "A,B"
+            const parsed = JSON.parse(tagsAttr);
+            if(Array.isArray(parsed)) tags = parsed.map(String);
+          }catch{
+            tags = tagsAttr.split(',').map(s=>s.trim()).filter(Boolean);
+          }
+        }
+
+        // 2) Si faltan campos, intenta extraer del contenido
+        const nameFallback = card.querySelector('[data-field="name"]')?.textContent
+                          || card.querySelector('.title, h3, h2')?.textContent
+                          || '';
+        const countryFallback = card.querySelector('[data-field="country"]')?.textContent || '';
+        const regionFallback = card.querySelector('[data-field="region"]')?.textContent || '';
+
+        if(tags.length === 0){
+          const tagNodes = card.querySelectorAll('[data-tag], .tag, .chip, .badge');
+          tags = Array.from(tagNodes).map(n => (n.getAttribute('data-tag') || n.textContent || '').trim()).filter(Boolean);
+        }
+
+        return {
+          name: name || nameFallback,
+          country: country || countryFallback,
+          region: regionVal || regionFallback,
+          tags
+        };
+      }
+
+      function cardMatches(card){
+        const q = norm(searchInput?.value || '');
+        const wantCountry = country.value || '';
+        const wantRegion  = region.value || '';
+
+        const wantedTags = Array.from(selected);
+
+        const { name, country: ctry, region: reg, tags } = getCardData(card);
+
+        const nameOk = !q || norm(name).includes(q);
+        const countryOk = !wantCountry || norm(ctry) === norm(wantCountry);
+        const regionOk  = !wantRegion  || norm(reg)  === norm(wantRegion);
+
+        // Cada etiqueta seleccionada debe estar presente en las etiquetas del card
+        const tagSet = new Set(tags.map(t=>norm(t)));
+        const tagsOk = wantedTags.every(t => tagSet.has(norm(t)));
+
+        return nameOk && countryOk && regionOk && tagsOk;
+      }
+
+      function applyFilters(){
+        const cards = resultsEl?.children ? Array.from(resultsEl.children) : [];
+        cards.forEach(card=>{
+          // oculta elementos que no son tarjetas (p.ej. placeholders)
+          if(!(card instanceof HTMLElement)) return;
+          const show = cardMatches(card);
+          card.style.display = show ? '' : 'none';
+        });
+      }
+
+      // Dispara filtrado al escribir en el buscador
+      searchInput?.addEventListener('input', () => applyFilters());
+
+      // Si otro script (cards.js) inyecta tarjetas asincrónicamente, observa cambios y aplica filtro
+      const mo = new MutationObserver(() => applyFilters());
+      if(resultsEl) mo.observe(resultsEl, { childList:true, subtree:false });
+
+      // Primer filtrado por si hay contenido inicial
+      applyFilters();
     })();
   </script>
   <script src="./js/cards.js"></script>

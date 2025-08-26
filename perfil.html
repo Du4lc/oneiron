@@ -102,9 +102,11 @@
     .section-bd{ padding:14px; }
 
     /* Banner fijo arriba: MISMO color que index */
+    /*
     #sec-banner{ height:0; margin:0; }
     #sec-banner .section-bd{ padding:0; height:0; }
     #sec-banner .card{ background:transparent; border:0; box-shadow:none; }
+    */
     .banner-wrap{
       position:fixed; top:0; left:0; width:100vw; height:var(--banner-h);
       background:linear-gradient(135deg, var(--banner-start), var(--banner-end)); /* <- igual que index */
@@ -112,7 +114,7 @@
     }
     .banner{ position:absolute; inset:0; background-size:cover; background-position:center; filter:saturate(1) contrast(1); }
     .banner-overlay{ position:absolute; inset:0; background:radial-gradient(800px 260px at 50% 0%, rgba(255,255,255,.18), transparent 60%), linear-gradient(to bottom, rgba(255,255,255,.15), rgba(255,255,255,.02)); pointer-events:none }
-    .logo-on-banner{ position:absolute; inset:0; display:grid; place-items:center; }
+    .logo-on-banner{ position:absolute; inset:0; display:grid; place-items:center; transform: translateY(18px); }
     .logo-on-banner img{ width:calc(var(--banner-h) * 0.46); height:calc(var(--banner-h) * 0.46); object-fit:contain; border-radius:24px; background:#fff; padding:12px; box-shadow:0 12px 30px rgba(15,23,42,.22) }
 
     .uploader { position: absolute; right: 24px; bottom: 14px; display:flex; gap:12px; }
@@ -338,20 +340,22 @@
     <section class="panel">
 
       <!-- Banner fijo arriba -->
-      <article class="card" id="sec-banner" aria-label="Banner y logotipo">
-        <div class="section-bd">
-          <div class="banner-wrap" id="banner-wrap">
-            <div class="banner" id="banner" role="img" aria-label="Imagen de cabecera"></div>
-            <div class="banner-overlay"></div>
-            <div class="logo-on-banner"><img id="logo" alt="Logotipo" src="./assets/oneiron.png"></div>
-            <div class="uploader">
-              <label class="upl" aria-label="Subir imagen de banner"><input id="banner-input" type="file" accept="image/*">Banner</label>
-              <label class="upl" aria-label="Subir logotipo"><input id="logo-input" type="file" accept="image/*">Logo</label>
-              <button class="upl" type="button" id="reset-media" title="Restablecer imágenes">Restablecer</button>
-            </div>
-          </div>
+      <div class="banner-wrap" id="banner-wrap">
+        <div class="banner" id="banner" role="img" aria-label="Imagen de cabecera"></div>
+        <div class="banner-overlay"></div>
+        <div class="logo-on-banner">
+          <img id="logo" alt="Logotipo" src="./assets/oneiron.png">
         </div>
-      </article>
+        <div class="uploader">
+          <label class="upl" aria-label="Subir imagen de banner">
+            <input id="banner-input" type="file" accept="image/*">Banner
+          </label>
+          <label class="upl" aria-label="Subir logotipo">
+            <input id="logo-input" type="file" accept="image/*">Logo
+          </label>
+          <button class="upl" type="button" id="reset-media" title="Restablecer imágenes">Restablecer</button>
+        </div>
+      </div>
 
       <!-- Nombre -->
       <article class="card" id="sec-nombre" aria-label="Nombre de la empresa">
