@@ -6,13 +6,19 @@
   let cache = Object.create(null);
   let patched = false;
 
-  // Importa supabase-js v2 (ESM) desde jsDelivr
   async function loadSupabase() {
-    // URL ESM estable
-    const mod = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/esm/index.js');
-    // export nombrado
-    if (!mod.createClient) throw new Error('No se pudo cargar createClient de supabase-js');
-    return mod.createClient;
+    const urls = [
+      // jsDelivr empaqueta a ESM automáticamente
+      'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm',
+      // Fallbacks alternativos
+      'https://esm.sh/@supabase/supabase-js@2',
+      'https://ga.jspm.io/npm:@supabase/supabase-js@2'
+    ];
+    let lastErr;
+    for (const u of urls) {
+      try { return await import(u); } catch (e) { lastErr = e; }
+    }
+    throw new Error('No se pudo cargar @supabase/supabase-js desde los CDNs', { cause: lastErr });
   }
 
   async function fetchAll(client) {
@@ -87,7 +93,7 @@
   // API pública
   window.initSupabaseStorage = async function initSupabaseStorage({ url, anonKey }) {
     if (!url || !anonKey) throw new Error('initSupabaseStorage requiere { url, anonKey }');
-    const createClient = await loadSupabase();
+    const { createClient } = await loadSupabase();
     const client = createClient(url, anonKey, { auth: { persistSession: false } });
 
     await fetchAll(client);       // 1) precarga
