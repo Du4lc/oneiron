@@ -5,13 +5,6 @@
   <link rel="icon" href="assets/oneiron.ico" type="image/x-icon">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ONEIRON — Perfil de empresa</title>
-
-  <!-- Cliente de Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- Puente que sustituye window.localStorage y sincroniza con Supabase -->
-  <script src="./js/supabase-bridge.js"></script>
-
   <style>
     :root{
       /* Paleta coherente con index.html */
@@ -555,23 +548,7 @@
       }
     }
     function loadProfile(){ const store = readStore(); return store[currentUser] || { name:'', desc:'', tags:[], country:'', region:'', banner:'', logo:'' , proyectos:[], productos:[]}; }
-    async function saveProfile(profile){
-      // Guardado local (no lo rompemos)
-      const store = readStore();
-      store[currentUser] = profile;
-      writeStore(store);
-
-      // Upsert directo en Supabase.profiles
-      try {
-        const supa = window.__supabaseBridge?.client;
-        if (!supa) { console.warn('Supabase client no disponible'); return; }
-        const row = { user: String(currentUser), data: profile };
-        const { error } = await supa.from('profiles').upsert(row, { onConflict: 'user' });
-        if (error) console.warn('[profiles upsert] Error:', error);
-      } catch (e) {
-        console.warn('[profiles upsert] Excepción:', e);
-      }
-    }
+    function saveProfile(profile){ const store = readStore(); store[currentUser] = profile; writeStore(store); }
 
     /* ========= UI Refs ========= */
     const bannerEl = document.getElementById('banner');
