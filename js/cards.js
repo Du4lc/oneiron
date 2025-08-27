@@ -76,8 +76,15 @@
     });
   }
 
-  document.addEventListener('DOMContentLoaded', renderCards);
-  // Por si quieres refrescar manualmente desde consola
+  // Inicializa aunque el DOM ya esté listo
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', renderCards, { once: true });
+  } else {
+    renderCards();
+  }
+
+  // Por si quieres refrescar manualmente desde consola o desde otros scripts
   window.renderOneironCards = renderCards;
+
 })();
 // ONEIRON: END cards.js
