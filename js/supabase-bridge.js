@@ -62,7 +62,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
       const store = {};
       (data || []).forEach(row => {
-        // Aseguramos estructura objeto
         store[row.user] = (row.data && typeof row.data === 'object') ? row.data : {};
       });
 
@@ -90,7 +89,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
     if (rows.length === 0) return;
 
-    // Upsert por PK 'user'
     try {
       const { error } = await client
         .from('profiles')
@@ -101,17 +99,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     }
   }
 
-  // Borrar clave en Supabase
-  async function deleteKey(key) {
-    // No borramos nada en remoto para evitar eliminar perfiles accidentalmente.
-    // Si necesitas borrar un perfil, hazlo con una operación específica (no por clave global).
-    return;
-  }
-
-  async function clearAllRemote() {
-    // Deshabilitado adrede (evitar 'truncate' desde cliente público).
-    return;
-  }
+  async function deleteKey(key) { return; }
+  async function clearAllRemote() { return; }
 
   // Implementación compatible con la API estándar de localStorage
   const storageShim = {

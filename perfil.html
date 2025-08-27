@@ -556,25 +556,18 @@
     }
     function loadProfile(){ const store = readStore(); return store[currentUser] || { name:'', desc:'', tags:[], country:'', region:'', banner:'', logo:'' , proyectos:[], productos:[]}; }
     async function saveProfile(profile){
-      // 1) Guardado local existente (no lo rompemos)
+      // Guardado local (no lo rompemos)
       const store = readStore();
       store[currentUser] = profile;
       writeStore(store);
 
-      // 2) Upsert directo en Supabase.profiles (clave primaria: user)
+      // Upsert directo en Supabase.profiles
       try {
         const supa = window.__supabaseBridge?.client;
-        if (!supa) {
-          console.warn('Supabase client no disponible en __supabaseBridge.client');
-          return;
-        }
+        if (!supa) { console.warn('Supabase client no disponible'); return; }
         const row = { user: String(currentUser), data: profile };
         const { error } = await supa.from('profiles').upsert(row, { onConflict: 'user' });
-        if (error) {
-          console.warn('[profiles upsert] Error:', error);
-        } else {
-          console.log('[profiles upsert] OK para', currentUser);
-        }
+        if (error) console.warn('[profiles upsert] Error:', error);
       } catch (e) {
         console.warn('[profiles upsert] Excepción:', e);
       }
