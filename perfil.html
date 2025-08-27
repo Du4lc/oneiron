@@ -555,7 +555,30 @@
       }
     }
     function loadProfile(){ const store = readStore(); return store[currentUser] || { name:'', desc:'', tags:[], country:'', region:'', banner:'', logo:'' , proyectos:[], productos:[]}; }
-    function saveProfile(profile){ const store = readStore(); store[currentUser] = profile; writeStore(store); }
+    async function saveProfile(profile){
+      // 1) Guardado local existente (no lo rompemos)
+      const store = readStore();
+      store[currentUser] = profile;
+      writeStore(store);
+
+      // 2) Upsert directo en Supabase.profiles (clave primaria: user)
+      try {
+        const supa = window.__supabaseBridge?.client;
+        if (!supa) {
+          console.warn('Supabase client no disponible en __supabaseBridge.client');
+          return;
+        }
+        const row = { user: String(currentUser), data: profile };
+        const { error } = await supa.from('profiles').upsert(row, { onConflict: 'user' });
+        if (error) {
+          console.warn('[profiles upsert] Error:', error);
+        } else {
+          console.log('[profiles upsert] OK para', currentUser);
+        }
+      } catch (e) {
+        console.warn('[profiles upsert] Excepción:', e);
+      }
+    }
 
     /* ========= UI Refs ========= */
     const bannerEl = document.getElementById('banner');
