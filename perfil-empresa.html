@@ -316,6 +316,18 @@
     </section>
   </main>
 
+  <!-- ===== Bootstrap de perfiles (SUPABASE) ANTES de leer del store ===== -->
+  <!-- 1) Supabase cliente -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- 2) Bridge común -->
+  <script src="./js/supabase-bridge.js"></script>
+  <!-- 3) Llamada de bootstrap (solo aquí donde se leen perfiles al cargar) -->
+  <script>
+    // Carga/sincroniza perfiles desde Supabase al localStorage antes de renderizar
+    window.__oneironBridge__?.bootstrapProfiles?.();
+  </script>
+  <!-- ===================================================================== -->
+
   <script>
     (function(){
       const LS_KEY = 'oneiron_profiles';
@@ -530,5 +542,6 @@
       });
     })();
   </script>
+
 </body>
 </html>

@@ -151,6 +151,7 @@
           <div class="control">
             <input class="input" id="email" type="email" placeholder="tu@empresa.com" autocomplete="email" required />
           </div>
+          <p id="email-exists" class="hint err" style="display:none" aria-live="polite"></p>
         </div>
 
         <div class="field">
@@ -193,10 +194,34 @@
     const pass2 = document.getElementById('password2');
     const createBtn = document.getElementById('create-account');
     const msg = document.getElementById('match-msg');
+    const emailExistsMsg = document.getElementById('email-exists');
+
+    const LS_KEY = 'oneiron_profiles';
+
+    function emailAlreadyExists(value){
+      try{
+        const store = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+        return !!store[value];
+      }catch{ return false; }
+    }
+
+    function updateEmailExistsUI(){
+      const value = email.value.trim();
+      const exists = value && emailAlreadyExists(value);
+      if(exists){
+        emailExistsMsg.style.display = '';
+        emailExistsMsg.textContent = 'Este correo ya está registrado. Inicia sesión o usa otro correo.';
+      }else{
+        emailExistsMsg.style.display = 'none';
+        emailExistsMsg.textContent = '';
+      }
+      return exists;
+    }
 
     function validate(){
       const allFilled = email.value.trim() && pass1.value && pass2.value;
       const matches = pass1.value === pass2.value && pass2.value.length > 0;
+      const exists = updateEmailExistsUI();
 
       pass2.classList.remove('match-ok','match-err');
       msg.textContent = ''; msg.classList.remove('ok','err');
@@ -211,7 +236,8 @@
         }
       }
 
-      createBtn.disabled = !(allFilled && matches);
+      // Deshabilita si no está todo correcto o si el email ya existe
+      createBtn.disabled = !(allFilled && matches) || exists;
     }
 
     ['input','blur','keyup','change'].forEach(evt=>{
@@ -238,20 +264,40 @@
 
     document.getElementById('signup-form').addEventListener('submit', (e)=>{
       e.preventDefault();
-      const email = document.getElementById('email').value.trim();
-      if(!email) { alert('Introduce un correo.'); return; }
+      const value = email.value.trim();
+      if(!value) { alert('Introduce un correo.'); email.focus(); return; }
 
-      // Si quieres, aquí podrías preconfigurar un perfil vacío en localStorage:
-      const LS_KEY = 'oneiron_profiles';
+      // Si ya existe, notifica y no crea/ni redirige
+      if(emailAlreadyExists(value)){
+        updateEmailExistsUI();
+        alert('Este correo ya está registrado. Inicia sesión o usa otro correo.');
+        email.focus();
+        return;
+      }
+
+      // Crear perfil vacío en localStorage (sólo si no existía)
       const store = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
-      if(!store[email]) {
-        store[email] = { name:'', desc:'', tags:[], country:'', region:'', banner:'', logo:'' };
+      if(!store[value]) {
+        store[value] = { name:'', desc:'', tags:[], country:'', region:'', banner:'', logo:'' };
         localStorage.setItem(LS_KEY, JSON.stringify(store));
+
+        // ⬇️ ESPEJO: refleja el alta en Supabase donde YA guardas
+        window.__oneironBridge__?.mirrorUpsert?.(value, store[value]);
       }
 
       // Redirige al perfil con el email en la URL
-      location.href = `./perfil.html?user=${encodeURIComponent(email)}`;
+      location.href = `./perfil.html?user=${encodeURIComponent(value)}`;
     });
+
+    // Validación inicial por si el navegador autocompleta
+    validate();
   </script>
+
+  <!-- 1) Supabase cliente -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- 2) Bridge común -->
+  <script src="./js/supabase-bridge.js"></script>
+
 </body>
 </html>

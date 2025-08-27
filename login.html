@@ -151,6 +151,17 @@
     </section>
   </main>
 
+  <!-- 1) Supabase cliente -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- 2) Bridge común -->
+  <script src="./js/supabase-bridge.js"></script>
+
+  <!-- 3) Bootstrap antes de leer -->
+  <script>
+    window.__oneironBridge__?.bootstrapProfiles();
+  </script>
+
   <script>
     const email = document.getElementById('email');
     const pass = document.getElementById('password');
@@ -198,5 +209,6 @@
       alert('Funcionalidad de recuperación pendiente de backend. Aquí iría el flujo de reset.');
     });
   </script>
+
 </body>
 </html>

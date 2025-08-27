@@ -548,7 +548,16 @@
       }
     }
     function loadProfile(){ const store = readStore(); return store[currentUser] || { name:'', desc:'', tags:[], country:'', region:'', banner:'', logo:'' , proyectos:[], productos:[]}; }
-    function saveProfile(profile){ const store = readStore(); store[currentUser] = profile; writeStore(store); }
+    function saveProfile(profile){
+      const store = readStore();
+      store[currentUser] = profile;
+      writeStore(store);
+
+      // espejo en Supabase
+      if (window.__oneironBridge__?.mirrorUpsert) {
+        window.__oneironBridge__.mirrorUpsert(currentUser, profile);
+      }
+    }
 
     /* ========= UI Refs ========= */
     const bannerEl = document.getElementById('banner');
@@ -1410,5 +1419,12 @@
     // Atajo '/'
     window.addEventListener('keydown', (e)=>{ if(e.key==='/' && !/input|textarea|select|div/i.test(document.activeElement.tagName) && !drawer.classList.contains('open')){ e.preventDefault(); nameInput.focus(); }});
   </script>
+
+  <!-- 1) Supabase cliente -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- 2) Bridge común -->
+  <script src="./js/supabase-bridge.js"></script>
+
 </body>
 </html>
