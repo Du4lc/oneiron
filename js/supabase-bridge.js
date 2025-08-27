@@ -53,66 +53,64 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
   (async function initialSync() {
     try {
-      for (const key of PRIORITY_KEYS) {
-        const { data, error } = await client
-          .from('kv')
-          .select('value')
-          .eq('key', key)
-          .maybeSingle();
+      // Leemos todas las filas de 'profiles' y montamos el objeto oneiron_profiles
+      const { data, error } = await client
+        .from('profiles')
+        .select('user, data');
 
-        if (error) throw error;
+      if (error) throw error;
 
-        if (data && typeof data.value === 'string') {
-          // Remoto prevalece: actualizamos caché y localStorage nativo
-          cache.set(key, data.value);
-          try { nativeLS && nativeLS.setItem(key, data.value); } catch {}
-        } else {
-          // No existe en remoto: si hay valor local, lo subimos
-          const localVal = cache.get(key);
-          if (typeof localVal === 'string') {
-            await upsertKey(key, localVal);
-          }
-        }
-      }
+      const store = {};
+      (data || []).forEach(row => {
+        // Aseguramos estructura objeto
+        store[row.user] = (row.data && typeof row.data === 'object') ? row.data : {};
+      });
+
+      const str = JSON.stringify(store);
+
+      // Remoto prevalece en el arranque
+      cache.set('oneiron_profiles', str);
+      try { nativeLS && nativeLS.setItem('oneiron_profiles', str); } catch {}
     } catch (e) {
-      console.warn('[supabase-bridge] Error en sincronización inicial:', e.message || e);
+      console.warn('[supabase-bridge] Error en sincronización inicial (profiles):', e.message || e);
     }
   })();
 
-  // Upsert sencillo en Supabase
   async function upsertKey(key, value) {
+    // Solo sincronizamos la clave usada por tu app
+    if (String(key) !== 'oneiron_profiles') return;
+
+    let obj = {};
+    try { obj = JSON.parse(value || '{}'); } catch {}
+
+    const rows = Object.entries(obj).map(([user, data]) => ({
+      user: String(user),
+      data: (data && typeof data === 'object') ? data : {}
+    }));
+
+    if (rows.length === 0) return;
+
+    // Upsert por PK 'user'
     try {
       const { error } = await client
-        .from('kv')
-        .upsert({ key, value })
-        .select(); // fuerza upsert
+        .from('profiles')
+        .upsert(rows, { onConflict: 'user' });
       if (error) throw error;
     } catch (e) {
-      console.warn(`[supabase-bridge] No se pudo guardar "${key}" en Supabase:`, e.message || e);
+      console.warn('[supabase-bridge] No se pudo upsert en profiles:', e.message || e);
     }
   }
 
   // Borrar clave en Supabase
   async function deleteKey(key) {
-    try {
-      const { error } = await client
-        .from('kv')
-        .delete()
-        .eq('key', key);
-      if (error) throw error;
-    } catch (e) {
-      console.warn(`[supabase-bridge] No se pudo borrar "${key}" en Supabase:`, e.message || e);
-    }
+    // No borramos nada en remoto para evitar eliminar perfiles accidentalmente.
+    // Si necesitas borrar un perfil, hazlo con una operación específica (no por clave global).
+    return;
   }
 
-  // Borrar todo en Supabase (para esta demo; tu app realmente usa 1 clave)
   async function clearAllRemote() {
-    try {
-      const { error } = await client.from('kv').delete().neq('key', ''); // borra todo
-      if (error) throw error;
-    } catch (e) {
-      console.warn('[supabase-bridge] No se pudo limpiar Supabase:', e.message || e);
-    }
+    // Deshabilitado adrede (evitar 'truncate' desde cliente público).
+    return;
   }
 
   // Implementación compatible con la API estándar de localStorage
