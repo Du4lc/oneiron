@@ -599,20 +599,6 @@
       applyFilters();
     })();
   </script>
-
-  <!-- 1) Supabase cliente -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- 2) Bridge común -->
-  <script src="./js/supabase-bridge.js"></script>
-
-  <!-- 3) Bootstrap antes de tus scripts que leen perfiles -->
-  <script>
-    window.__oneironBridge__?.bootstrapProfiles();
-  </script>
-
-  <!-- 4) Tus scripts existentes -->
   <script src="./js/cards.js"></script>
-
 </body>
 </html>

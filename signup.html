@@ -151,7 +151,6 @@
           <div class="control">
             <input class="input" id="email" type="email" placeholder="tu@empresa.com" autocomplete="email" required />
           </div>
-          <p id="email-exists" class="hint err" style="display:none" aria-live="polite"></p>
         </div>
 
         <div class="field">
@@ -188,45 +187,16 @@
     </section>
   </main>
 
-  <!-- ===== Cargar Supabase y el bridge ANTES del script que usa mirrorUpsert ===== -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./js/supabase-bridge.js"></script>
-  <!-- =========================================================================== -->
-
   <script>
     const email = document.getElementById('email');
     const pass1 = document.getElementById('password');
     const pass2 = document.getElementById('password2');
     const createBtn = document.getElementById('create-account');
     const msg = document.getElementById('match-msg');
-    const emailExistsMsg = document.getElementById('email-exists');
-
-    const LS_KEY = 'oneiron_profiles';
-
-    function emailAlreadyExists(value){
-      try{
-        const store = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
-        return !!store[value];
-      }catch{ return false; }
-    }
-
-    function updateEmailExistsUI(){
-      const value = email.value.trim();
-      const exists = value && emailAlreadyExists(value);
-      if(exists){
-        emailExistsMsg.style.display = '';
-        emailExistsMsg.textContent = 'Este correo ya está registrado. Inicia sesión o usa otro correo.';
-      }else{
-        emailExistsMsg.style.display = 'none';
-        emailExistsMsg.textContent = '';
-      }
-      return exists;
-    }
 
     function validate(){
       const allFilled = email.value.trim() && pass1.value && pass2.value;
       const matches = pass1.value === pass2.value && pass2.value.length > 0;
-      const exists = updateEmailExistsUI();
 
       pass2.classList.remove('match-ok','match-err');
       msg.textContent = ''; msg.classList.remove('ok','err');
@@ -241,8 +211,7 @@
         }
       }
 
-      // Deshabilita si no está todo correcto o si el email ya existe
-      createBtn.disabled = !(allFilled && matches) || exists;
+      createBtn.disabled = !(allFilled && matches);
     }
 
     ['input','blur','keyup','change'].forEach(evt=>{
@@ -267,40 +236,22 @@
     attachPeek('toggle-pass', pass1);
     attachPeek('toggle-pass2', pass2);
 
-    document.getElementById('signup-form').addEventListener('submit', async (e)=>{
+    document.getElementById('signup-form').addEventListener('submit', (e)=>{
       e.preventDefault();
-      const value = email.value.trim();
-      if(!value) { alert('Introduce un correo.'); email.focus(); return; }
+      const email = document.getElementById('email').value.trim();
+      if(!email) { alert('Introduce un correo.'); return; }
 
-      // Si ya existe, notifica y no crea/ni redirige
-      if(emailAlreadyExists(value)){
-        updateEmailExistsUI();
-        alert('Este correo ya está registrado. Inicia sesión o usa otro correo.');
-        email.focus();
-        return;
-      }
-
-      // Crear perfil vacío en localStorage (sólo si no existía)
+      // Si quieres, aquí podrías preconfigurar un perfil vacío en localStorage:
+      const LS_KEY = 'oneiron_profiles';
       const store = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
-      if(!store[value]) {
-        store[value] = { name:'', desc:'', tags:[], country:'', region:'', banner:'', logo:'' };
+      if(!store[email]) {
+        store[email] = { name:'', desc:'', tags:[], country:'', region:'', banner:'', logo:'' };
         localStorage.setItem(LS_KEY, JSON.stringify(store));
-
-        // ESPEJO a Supabase (ahora que el bridge está cargado)
-        try{
-          await window.__oneironBridge__?.mirrorUpsert?.(value, store[value]);
-        }catch(err){
-          // No bloquea la UX si falla el espejo; opcionalmente podrías loguear
-          console.error('mirrorUpsert falló:', err);
-        }
       }
 
       // Redirige al perfil con el email en la URL
-      location.href = `./perfil.html?user=${encodeURIComponent(value)}`;
+      location.href = `./perfil.html?user=${encodeURIComponent(email)}`;
     });
-
-    // Validación inicial por si el navegador autocompleta
-    validate();
   </script>
 </body>
 </html>
