@@ -4,7 +4,7 @@
 
 // 1) Configura tus credenciales
 const SUPABASE_URL  = 'https://xhoibhwzxenggyefkhdk.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhob2liaHd6eGVuZ2d5ZWZraGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyODI4MjEsImV4cCI6MjA3MTg1ODgyMX0.Ljmzb3zsH9uXSQza28QqRwzGTrM0bz7SVzFB-xio-g4';                     // <- y esto
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhob2liaHd6eGVuZ2d5ZWZraGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyODI4MjEsImV4cCI6MjA3MTg1ODgyMX0.Ljmzb3zsH9uXSQza28QqRwzGTrM0bz7SVzFB-xio-g4';
 
 // 2) Crea el cliente (requiere que cargues el script CDN en cada página; ver paso 2)
 const sb = (typeof supabase !== 'undefined')

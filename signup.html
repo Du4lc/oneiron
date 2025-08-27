@@ -188,6 +188,11 @@
     </section>
   </main>
 
+  <!-- ===== Cargar Supabase y el bridge ANTES del script que usa mirrorUpsert ===== -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase-bridge.js"></script>
+  <!-- =========================================================================== -->
+
   <script>
     const email = document.getElementById('email');
     const pass1 = document.getElementById('password');
@@ -262,7 +267,7 @@
     attachPeek('toggle-pass', pass1);
     attachPeek('toggle-pass2', pass2);
 
-    document.getElementById('signup-form').addEventListener('submit', (e)=>{
+    document.getElementById('signup-form').addEventListener('submit', async (e)=>{
       e.preventDefault();
       const value = email.value.trim();
       if(!value) { alert('Introduce un correo.'); email.focus(); return; }
@@ -281,8 +286,13 @@
         store[value] = { name:'', desc:'', tags:[], country:'', region:'', banner:'', logo:'' };
         localStorage.setItem(LS_KEY, JSON.stringify(store));
 
-        // ⬇️ ESPEJO: refleja el alta en Supabase donde YA guardas
-        window.__oneironBridge__?.mirrorUpsert?.(value, store[value]);
+        // ESPEJO a Supabase (ahora que el bridge está cargado)
+        try{
+          await window.__oneironBridge__?.mirrorUpsert?.(value, store[value]);
+        }catch(err){
+          // No bloquea la UX si falla el espejo; opcionalmente podrías loguear
+          console.error('mirrorUpsert falló:', err);
+        }
       }
 
       // Redirige al perfil con el email en la URL
@@ -292,12 +302,5 @@
     // Validación inicial por si el navegador autocompleta
     validate();
   </script>
-
-  <!-- 1) Supabase cliente -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- 2) Bridge común -->
-  <script src="./js/supabase-bridge.js"></script>
-
 </body>
 </html>
