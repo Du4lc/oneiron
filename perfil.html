@@ -1420,11 +1420,39 @@
     window.addEventListener('keydown', (e)=>{ if(e.key==='/' && !/input|textarea|select|div/i.test(document.activeElement.tagName) && !drawer.classList.contains('open')){ e.preventDefault(); nameInput.focus(); }});
   </script>
 
-  <!-- 1) Supabase cliente -->
+  <!-- 1) Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- 2) Bridge común -->
+  <!-- 2) Bridge -->
   <script src="./js/supabase-bridge.js"></script>
+
+  <!-- 🚀 Bootstrap desde Supabase -> localStorage -->
+  <script>
+    (async () => {
+      const qsEmail = new URLSearchParams(location.search).get('user');
+
+      let email = qsEmail;
+      if (!email && window.__oneironBridge__) {
+        const local = __oneironBridge__.readStore();
+        const keys = Object.keys(local || {});
+        if (keys.length > 0) email = keys[0];
+      }
+
+      if (window.__oneironBridge__) {
+        try {
+          await __oneironBridge__.bootstrapProfiles(email || null);
+          console.debug('[bootstrap] listo', { email });
+        } catch (e) {
+          console.warn('[bootstrap] fallo', e);
+        }
+      }
+    })();
+  </script>
+
+  <!-- ✅ Tu script original de UI que lee localStorage -->
+  <script>
+    const store = JSON.parse(localStorage.getItem('oneiron_profiles') || '{}');
+    // ... tu lógica existente para mostrar datos del perfil ...
+  </script>
 
 </body>
 </html>
