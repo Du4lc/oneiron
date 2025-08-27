@@ -151,52 +151,59 @@
     </section>
   </main>
 
+  <script src="js/supabase.js"></script>
   <script>
-    const email = document.getElementById('email');
-    const pass = document.getElementById('password');
-    const loginBtn = document.getElementById('do-login');
+    initSupabaseStorage({
+      url: 'https://voopwvocicowmzjvxaey.supabase.co',
+      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvb3B3dm9jaWNvd216anZ4YWV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMTYxOTMsImV4cCI6MjA3MTg5MjE5M30.sYbSaJa7kJSFKFI6Bm29hsJBX3OocAHqmxken3YnAuA'
+    }).then(() => {
+      const email = document.getElementById('email');
+      const pass = document.getElementById('password');
+      const loginBtn = document.getElementById('do-login');
 
-    function validate(){
-      const ok = email.value.trim() && pass.value;
-      loginBtn.disabled = !ok;
-    }
-    ['input','blur','keyup','change'].forEach(evt=>{
-      email.addEventListener(evt, validate);
-      pass.addEventListener(evt, validate);
-    });
-    validate();
-
-    function attachPeek(btnId, inputEl){
-      const btn = document.getElementById(btnId);
-      const show = ()=>{ inputEl.type = 'text'; };
-      const hide = ()=>{ inputEl.type = 'password'; };
-      btn.addEventListener('mousedown', show);
-      btn.addEventListener('touchstart', show, {passive:true});
-      window.addEventListener('mouseup', hide);
-      window.addEventListener('touchend', hide);
-      btn.addEventListener('mouseleave', hide);
-      btn.addEventListener('touchcancel', hide);
-      btn.addEventListener('blur', hide);
-    }
-    attachPeek('toggle-pass', pass);
-
-    document.getElementById('login-form').addEventListener('submit', (e)=>{
-      e.preventDefault();
-      const emailVal = email.value.trim();
-      if(!emailVal){ alert('Introduce tu correo.'); return; }
-      const LS_KEY = 'oneiron_profiles';
-      const store = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
-      if(!store[emailVal]){
-        alert('No encontramos una cuenta con ese correo. Crea una cuenta primero.');
-        return;
+      function validate(){
+        const ok = email.value.trim() && pass.value;
+        loginBtn.disabled = !ok;
       }
-      location.href = `./perfil.html?user=${encodeURIComponent(emailVal)}`;
-    });
+      ['input','blur','keyup','change'].forEach(evt=>{
+        email.addEventListener(evt, validate);
+        pass.addEventListener(evt, validate);
+      });
+      validate();
 
-    document.getElementById('forgot').addEventListener('click', (e)=>{
-      e.preventDefault();
-      alert('Funcionalidad de recuperación pendiente de backend. Aquí iría el flujo de reset.');
-    });
+      function attachPeek(btnId, inputEl){
+        const btn = document.getElementById(btnId);
+        const show = ()=>{ inputEl.type = 'text'; };
+        const hide = ()=>{ inputEl.type = 'password'; };
+        btn.addEventListener('mousedown', show);
+        btn.addEventListener('touchstart', show, {passive:true});
+        window.addEventListener('mouseup', hide);
+        window.addEventListener('touchend', hide);
+        btn.addEventListener('mouseleave', hide);
+        btn.addEventListener('touchcancel', hide);
+        btn.addEventListener('blur', hide);
+      }
+      attachPeek('toggle-pass', pass);
+
+      document.getElementById('login-form').addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const emailVal = email.value.trim();
+        if(!emailVal){ alert('Introduce tu correo.'); return; }
+        const LS_KEY = 'oneiron_profiles';
+        const store = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+        if(!store[emailVal]){
+          alert('No encontramos una cuenta con ese correo. Crea una cuenta primero.');
+          return;
+        }
+        location.href = `./perfil.html?user=${encodeURIComponent(emailVal)}`;
+      });
+
+      document.getElementById('forgot').addEventListener('click', (e)=>{
+        e.preventDefault();
+        alert('Funcionalidad de recuperación pendiente de backend. Aquí iría el flujo de reset.');
+      });
+    }).catch(console.error);
   </script>
+
 </body>
 </html>

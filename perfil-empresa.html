@@ -316,219 +316,226 @@
     </section>
   </main>
 
+  <script src="js/supabase.js"></script>
   <script>
-    (function(){
-      const LS_KEY = 'oneiron_profiles';
-      const defaultBanner = ''; // gradiente CSS
-      const defaultLogo = './assets/oneiron.png';
-      const qs = new URLSearchParams(location.search);
-      const currentUser = qs.get('user') || 'anon@oneiron';
+    initSupabaseStorage({
+      url: 'https://voopwvocicowmzjvxaey.supabase.co',
+      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvb3B3dm9jaWNvd216anZ4YWV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMTYxOTMsImV4cCI6MjA3MTg5MjE5M30.sYbSaJa7kJSFKFI6Bm29hsJBX3OocAHqmxken3YnAuA'
+    }).then(() => {
+      (function(){
+        const LS_KEY = 'oneiron_profiles';
+        const defaultBanner = ''; // gradiente CSS
+        const defaultLogo = './assets/oneiron.png';
+        const qs = new URLSearchParams(location.search);
+        const currentUser = qs.get('user') || 'anon@oneiron';
 
-      /* ---------- helpers de datos ---------- */
-      function readStore(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)) || {}; }catch{ return {}; } }
-      function loadProfile(){ const store = readStore(); return store[currentUser] || { name:'', desc:'', tags:[], country:'', region:'', banner:'', logo:'' , proyectos:[], productos:[]}; }
+        /* ---------- helpers de datos ---------- */
+        function readStore(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)) || {}; }catch{ return {}; } }
+        function loadProfile(){ const store = readStore(); return store[currentUser] || { name:'', desc:'', tags:[], country:'', region:'', banner:'', logo:'' , proyectos:[], productos:[]}; }
 
-      /* ---------- saneador básico HTML ---------- */
-      function sanitizeHtml(input){
-        const allowedTags = new Set(['P','DIV','SPAN','STRONG','B','EM','I','U','UL','OL','LI','BR','BLOCKQUOTE','H1','H2','H3','H4','H5','H6','A','IMG']);
-        const allowedCss = new Set(['color','font-family','font-size','font-weight','font-style','text-decoration','text-align','background-color','letter-spacing','line-height']);
-        const tmp = document.createElement('div');
-        tmp.innerHTML = String(input || '');
+        /* ---------- saneador básico HTML ---------- */
+        function sanitizeHtml(input){
+          const allowedTags = new Set(['P','DIV','SPAN','STRONG','B','EM','I','U','UL','OL','LI','BR','BLOCKQUOTE','H1','H2','H3','H4','H5','H6','A','IMG']);
+          const allowedCss = new Set(['color','font-family','font-size','font-weight','font-style','text-decoration','text-align','background-color','letter-spacing','line-height']);
+          const tmp = document.createElement('div');
+          tmp.innerHTML = String(input || '');
 
-        const walk = (node) => {
-          const kids = Array.from(node.childNodes);
-          for (const n of kids){
-            if (n.nodeType === 1){
-              if (!allowedTags.has(n.tagName)){
-                while (n.firstChild) n.parentNode.insertBefore(n.firstChild, n);
-                n.remove();
-                continue;
-              }
-              for (const attr of Array.from(n.attributes)){
-                const name = attr.name.toLowerCase();
-                if (name.startsWith('on')) { n.removeAttribute(attr.name); continue; }
-                if (name === 'style'){
-                  const cleaned = attr.value.split(';').map(p=>{
-                    const [kRaw, vRaw] = p.split(':');
-                    if (!kRaw || !vRaw) return '';
-                    const k = kRaw.trim().toLowerCase();
-                    const v = vRaw.trim();
-                    if (!allowedCss.has(k)) return '';
-                    if (/url\s*\(/i.test(v) || /expression\s*\(/i.test(v)) return '';
-                    return k+':'+v;
-                  }).filter(Boolean).join('; ');
-                  if (cleaned) n.setAttribute('style', cleaned); else n.removeAttribute('style');
-                } else if (n.tagName === 'A' && name === 'href'){
-                  const href = attr.value.trim();
-                  if (!/^https?:\/\//i.test(href)) n.removeAttribute('href');
-                } else if (n.tagName === 'IMG' && name === 'src'){
-                  const src = attr.value.trim();
-                  if (!/^(data:image\/|https?:\/\/|\.\/|\/)/i.test(src)) n.removeAttribute('src');
-                } else if (!['href','src','alt','title','target','rel'].includes(name)){
-                  n.removeAttribute(attr.name);
+          const walk = (node) => {
+            const kids = Array.from(node.childNodes);
+            for (const n of kids){
+              if (n.nodeType === 1){
+                if (!allowedTags.has(n.tagName)){
+                  while (n.firstChild) n.parentNode.insertBefore(n.firstChild, n);
+                  n.remove();
+                  continue;
                 }
+                for (const attr of Array.from(n.attributes)){
+                  const name = attr.name.toLowerCase();
+                  if (name.startsWith('on')) { n.removeAttribute(attr.name); continue; }
+                  if (name === 'style'){
+                    const cleaned = attr.value.split(';').map(p=>{
+                      const [kRaw, vRaw] = p.split(':');
+                      if (!kRaw || !vRaw) return '';
+                      const k = kRaw.trim().toLowerCase();
+                      const v = vRaw.trim();
+                      if (!allowedCss.has(k)) return '';
+                      if (/url\s*\(/i.test(v) || /expression\s*\(/i.test(v)) return '';
+                      return k+':'+v;
+                    }).filter(Boolean).join('; ');
+                    if (cleaned) n.setAttribute('style', cleaned); else n.removeAttribute('style');
+                  } else if (n.tagName === 'A' && name === 'href'){
+                    const href = attr.value.trim();
+                    if (!/^https?:\/\//i.test(href)) n.removeAttribute('href');
+                  } else if (n.tagName === 'IMG' && name === 'src'){
+                    const src = attr.value.trim();
+                    if (!/^(data:image\/|https?:\/\/|\.\/|\/)/i.test(src)) n.removeAttribute('src');
+                  } else if (!['href','src','alt','title','target','rel'].includes(name)){
+                    n.removeAttribute(attr.name);
+                  }
+                }
+                if (n.tagName === 'A'){
+                  if (!n.getAttribute('href')) { n.replaceWith(...Array.from(n.childNodes)); continue; }
+                  n.setAttribute('target','_blank'); n.setAttribute('rel','noopener noreferrer');
+                }
+                walk(n);
+              } else if (n.nodeType !== 3){
+                n.remove();
               }
-              if (n.tagName === 'A'){
-                if (!n.getAttribute('href')) { n.replaceWith(...Array.from(n.childNodes)); continue; }
-                n.setAttribute('target','_blank'); n.setAttribute('rel','noopener noreferrer');
-              }
-              walk(n);
-            } else if (n.nodeType !== 3){
-              n.remove();
             }
-          }
-        };
-        walk(tmp);
-        return tmp.innerHTML;
-      }
+          };
+          walk(tmp);
+          return tmp.innerHTML;
+        }
 
-      function countWordsFromHTML(html){
-        const txt = (html||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
-        return txt ? txt.split(' ').length : 0;
-      }
+        function countWordsFromHTML(html){
+          const txt = (html||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+          return txt ? txt.split(' ').length : 0;
+        }
 
-      /* ---------- render ---------- */
-      const bannerEl = document.getElementById('banner');
-      const logoEl = document.getElementById('logo');
+        /* ---------- render ---------- */
+        const bannerEl = document.getElementById('banner');
+        const logoEl = document.getElementById('logo');
 
-      const nameView = document.getElementById('company-name-view');
-      const descView = document.getElementById('company-desc-view');
-      const wordCountEl = document.getElementById('desc-count');
+        const nameView = document.getElementById('company-name-view');
+        const descView = document.getElementById('company-desc-view');
+        const wordCountEl = document.getElementById('desc-count');
 
-      const countryView = document.getElementById('country-view');
-      const regionView  = document.getElementById('region-view');
+        const countryView = document.getElementById('country-view');
+        const regionView  = document.getElementById('region-view');
 
-      const tagsWrap = document.getElementById('active-tags');
+        const tagsWrap = document.getElementById('active-tags');
 
-      const proyectosList = document.getElementById('proyectos-list');
-      const productosList = document.getElementById('productos-list');
-      const projCount = document.getElementById('projCount');
-      const prodCount = document.getElementById('prodCount');
+        const proyectosList = document.getElementById('proyectos-list');
+        const productosList = document.getElementById('productos-list');
+        const projCount = document.getElementById('projCount');
+        const prodCount = document.getElementById('prodCount');
 
-      const current = loadProfile();
+        const current = loadProfile();
 
-      // Banner y logo
-      bannerEl.style.backgroundImage = current.banner ? `url(${current.banner})` : defaultBanner;
-      logoEl.src = current.logo || defaultLogo;
+        // Banner y logo
+        bannerEl.style.backgroundImage = current.banner ? `url(${current.banner})` : defaultBanner;
+        logoEl.src = current.logo || defaultLogo;
 
-      // Nombre
-      nameView.textContent = (current.name || '').trim() || 'Empresa sin nombre';
+        // Nombre
+        nameView.textContent = (current.name || '').trim() || 'Empresa sin nombre';
 
-      // Descripción
-      descView.innerHTML = sanitizeHtml(current.desc || '<p class="muted">Sin descripción</p>');
-      const nWords = countWordsFromHTML(current.desc || '');
-      wordCountEl.textContent = `${nWords} / 1000 palabras`;
-      wordCountEl.style.color = nWords > 1000 ? 'var(--err)' : 'var(--muted)';
+        // Descripción
+        descView.innerHTML = sanitizeHtml(current.desc || '<p class="muted">Sin descripción</p>');
+        const nWords = countWordsFromHTML(current.desc || '');
+        wordCountEl.textContent = `${nWords} / 1000 palabras`;
+        wordCountEl.style.color = nWords > 1000 ? 'var(--err)' : 'var(--muted)';
 
-      // Localización
-      countryView.textContent = current.country || '—';
-      regionView.textContent = current.region || '—';
+        // Localización
+        countryView.textContent = current.country || '—';
+        regionView.textContent = current.region || '—';
 
-      // Etiquetas
-      tagsWrap.innerHTML = '';
-      (Array.isArray(current.tags) ? current.tags : []).forEach(tag=>{
-        const chip = document.createElement('span');
-        chip.className = 'chip';
-        chip.textContent = tag;
-        tagsWrap.appendChild(chip);
-      });
-      if(!tagsWrap.children.length){
-        const m = document.createElement('span'); m.className='muted'; m.textContent='Sin etiquetas';
-        tagsWrap.appendChild(m);
-      }
+        // Etiquetas
+        tagsWrap.innerHTML = '';
+        (Array.isArray(current.tags) ? current.tags : []).forEach(tag=>{
+          const chip = document.createElement('span');
+          chip.className = 'chip';
+          chip.textContent = tag;
+          tagsWrap.appendChild(chip);
+        });
+        if(!tagsWrap.children.length){
+          const m = document.createElement('span'); m.className='muted'; m.textContent='Sin etiquetas';
+          tagsWrap.appendChild(m);
+        }
 
-      // Items: tarjetas sin botones
-      function cardHTML(item){
-        const imagesHTML = (item.imagenes && item.imagenes.length)
-          ? `<div class="gallery-row">${item.imagenes.map(src=>`<img src="${src}" alt="">`).join('')}</div>`
-          : '';
-        const htmlDesc = sanitizeHtml(item.descripcion || '');
-        return `
-          <div class="section-bd">
-            <div class="item-head">
-              <div class="item-title">${item.titulo || 'Sin título'}</div>
-              <small class="muted">${(item.imagenes?.length||0)} foto(s)</small>
+        // Items: tarjetas sin botones
+        function cardHTML(item){
+          const imagesHTML = (item.imagenes && item.imagenes.length)
+            ? `<div class="gallery-row">${item.imagenes.map(src=>`<img src="${src}" alt="">`).join('')}</div>`
+            : '';
+          const htmlDesc = sanitizeHtml(item.descripcion || '');
+          return `
+            <div class="section-bd">
+              <div class="item-head">
+                <div class="item-title">${item.titulo || 'Sin título'}</div>
+                <small class="muted">${(item.imagenes?.length||0)} foto(s)</small>
+              </div>
+              ${imagesHTML}
+              <div class="item-desc">${htmlDesc}</div>
             </div>
-            ${imagesHTML}
-            <div class="item-desc">${htmlDesc}</div>
-          </div>
-        `;
-      }
-      function appendCard(listEl, item){
-        const card = document.createElement('article');
-        card.className = 'card';
-        card.style.marginTop = '8px';
-        card.innerHTML = cardHTML(item);
-        listEl.appendChild(card);
-      }
+          `;
+        }
+        function appendCard(listEl, item){
+          const card = document.createElement('article');
+          card.className = 'card';
+          card.style.marginTop = '8px';
+          card.innerHTML = cardHTML(item);
+          listEl.appendChild(card);
+        }
 
-      (current.proyectos||[]).forEach(p=> appendCard(proyectosList, p));
-      (current.productos||[]).forEach(p=> appendCard(productosList, p));
+        (current.proyectos||[]).forEach(p=> appendCard(proyectosList, p));
+        (current.productos||[]).forEach(p=> appendCard(productosList, p));
 
-      projCount.textContent = (current.proyectos?.length||0) ? `${current.proyectos.length} elemento(s)` : 'Sin elementos';
-      prodCount.textContent = (current.productos?.length||0) ? `${current.productos.length} elemento(s)` : 'Sin elementos';
+        projCount.textContent = (current.proyectos?.length||0) ? `${current.proyectos.length} elemento(s)` : 'Sin elementos';
+        prodCount.textContent = (current.productos?.length||0) ? `${current.productos.length} elemento(s)` : 'Sin elementos';
 
-      if(!(current.proyectos?.length)) proyectosList.innerHTML = '<div class="muted">Sin proyectos</div>';
-      if(!(current.productos?.length)) productosList.innerHTML = '<div class="muted">Sin productos</div>';
+        if(!(current.proyectos?.length)) proyectosList.innerHTML = '<div class="muted">Sin proyectos</div>';
+        if(!(current.productos?.length)) productosList.innerHTML = '<div class="muted">Sin productos</div>';
 
-      /* ---------- navegación con offset del banner (igual) ---------- */
-      function getBannerHeight(){
-        const v = getComputedStyle(document.documentElement).getPropertyValue('--banner-h').trim();
-        const n = parseInt(v, 10);
-        return isNaN(n) ? 0 : n;
-      }
-      const navLinks = Array.from(document.querySelectorAll('.side-nav a[href^="#"]'));
-      document.querySelectorAll('.side-nav a[href^="#"]').forEach(a=>{
-        a.addEventListener('click', (e)=>{
-          const href = a.getAttribute('href');
-          if(href === './index.html') return;
-          e.preventDefault();
-          const id = href.slice(1);
+        /* ---------- navegación con offset del banner (igual) ---------- */
+        function getBannerHeight(){
+          const v = getComputedStyle(document.documentElement).getPropertyValue('--banner-h').trim();
+          const n = parseInt(v, 10);
+          return isNaN(n) ? 0 : n;
+        }
+        const navLinks = Array.from(document.querySelectorAll('.side-nav a[href^="#"]'));
+        document.querySelectorAll('.side-nav a[href^="#"]').forEach(a=>{
+          a.addEventListener('click', (e)=>{
+            const href = a.getAttribute('href');
+            if(href === './index.html') return;
+            e.preventDefault();
+            const id = href.slice(1);
+            const el = document.getElementById(id);
+            if(!el) return;
+            const y = el.getBoundingClientRect().top + window.scrollY - getBannerHeight();
+            window.scrollTo({ top: y, behavior: 'smooth' });
+          });
+        });
+        const sections = ['sec-nombre','sec-desc','sec-tags','sec-local','sec-proyectos','sec-productos'];
+        const obs = new IntersectionObserver((entries)=>{
+          entries.forEach(entry=>{
+            const id = entry.target.id;
+            const link = navLinks.find(a=> a.getAttribute('href') === '#'+id);
+            if(!link) return;
+            if(entry.isIntersecting){
+              navLinks.forEach(l=> l.classList.remove('active'));
+              link.classList.add('active');
+            }
+          });
+        }, { rootMargin: `-${getBannerHeight()+20}px 0px -60% 0px`, threshold: 0.1 });
+        sections.forEach(id=>{
           const el = document.getElementById(id);
-          if(!el) return;
-          const y = el.getBoundingClientRect().top + window.scrollY - getBannerHeight();
-          window.scrollTo({ top: y, behavior: 'smooth' });
+          if(el) obs.observe(el);
         });
-      });
-      const sections = ['sec-nombre','sec-desc','sec-tags','sec-local','sec-proyectos','sec-productos'];
-      const obs = new IntersectionObserver((entries)=>{
-        entries.forEach(entry=>{
-          const id = entry.target.id;
-          const link = navLinks.find(a=> a.getAttribute('href') === '#'+id);
-          if(!link) return;
-          if(entry.isIntersecting){
-            navLinks.forEach(l=> l.classList.remove('active'));
-            link.classList.add('active');
-          }
+
+        /* ---------- parallax orbes (igual) ---------- */
+        const orbs = Array.from(document.querySelectorAll('.orb'));
+        let raf = 0; const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        function onMove(x, y){ orbs.forEach((el,i)=>{ const depth=(i+1)*0.015; el.style.transform = `translate3d(${(x-0.5)*30*depth}px, ${(y-0.5)*30*depth}px, 0)`; }); }
+        function handlePointer(evt){ if(prefersReduced) return; const {innerWidth:w, innerHeight:h}=window; const x=(evt.clientX??(evt.touches?.[0]?.clientX||w/2))/w; const y=(evt.clientY??(evt.touches?.[0]?.clientY||h/2))/h; cancelAnimationFrame(raf); raf=requestAnimationFrame(()=>onMove(x,y)); }
+        window.addEventListener('pointermove', handlePointer, {passive:true});
+        window.addEventListener('touchmove', handlePointer, {passive:true});
+
+        /* ---------- compartir (botón en el banner) ---------- */
+        document.getElementById('share-link')?.addEventListener('click', async (e)=>{
+          e.preventDefault();
+          const url = location.origin + location.pathname + '?user=' + encodeURIComponent(currentUser);
+          try{
+            if (navigator.share){
+              await navigator.share({ title: 'Perfil — ' + (current.name || 'Empresa'), url });
+            }else{
+              await navigator.clipboard.writeText(url);
+              alert('Enlace copiado al portapapeles');
+            }
+          }catch(err){}
         });
-      }, { rootMargin: `-${getBannerHeight()+20}px 0px -60% 0px`, threshold: 0.1 });
-      sections.forEach(id=>{
-        const el = document.getElementById(id);
-        if(el) obs.observe(el);
-      });
-
-      /* ---------- parallax orbes (igual) ---------- */
-      const orbs = Array.from(document.querySelectorAll('.orb'));
-      let raf = 0; const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      function onMove(x, y){ orbs.forEach((el,i)=>{ const depth=(i+1)*0.015; el.style.transform = `translate3d(${(x-0.5)*30*depth}px, ${(y-0.5)*30*depth}px, 0)`; }); }
-      function handlePointer(evt){ if(prefersReduced) return; const {innerWidth:w, innerHeight:h}=window; const x=(evt.clientX??(evt.touches?.[0]?.clientX||w/2))/w; const y=(evt.clientY??(evt.touches?.[0]?.clientY||h/2))/h; cancelAnimationFrame(raf); raf=requestAnimationFrame(()=>onMove(x,y)); }
-      window.addEventListener('pointermove', handlePointer, {passive:true});
-      window.addEventListener('touchmove', handlePointer, {passive:true});
-
-      /* ---------- compartir (botón en el banner) ---------- */
-      document.getElementById('share-link')?.addEventListener('click', async (e)=>{
-        e.preventDefault();
-        const url = location.origin + location.pathname + '?user=' + encodeURIComponent(currentUser);
-        try{
-          if (navigator.share){
-            await navigator.share({ title: 'Perfil — ' + (current.name || 'Empresa'), url });
-          }else{
-            await navigator.clipboard.writeText(url);
-            alert('Enlace copiado al portapapeles');
-          }
-        }catch(err){}
-      });
-    })();
+      })();
+    }).catch(console.error);
   </script>
+
 </body>
 </html>
