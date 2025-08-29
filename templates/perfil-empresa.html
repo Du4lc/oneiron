@@ -6,6 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ONEIRON — Perfil de empresa (vista)</title>
   <style>
+
+    /*ESTO TAMBÍEN DEBERIA SER OTRO ARCHIVO, Y LA MAYORIA DE <script>*/
+
+
+
+
     :root{
       /* Paleta y tokens iguales que perfil.html */
       --bg:#f7f9fc; --card:#ffffffee; --glass:#ffffffb8; --soft:#f3f6fb80; --stroke:#d1d9e680; --text:#0f172a; --muted:#6b7280;
@@ -188,7 +194,7 @@
   <aside class="sidebar" aria-label="Índice">
     <div class="side-title">Navegación</div>
     <nav class="side-nav" id="side-nav">
-      <a class="btn-link btn-primary" href="./index.html" title="Volver al inicio">
+      <a class="btn-link btn-primary" href="/" title="Volver al inicio">
         <span class="left">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9"/><path d="M9 21V9h6v12"/></svg>
           Inicio
@@ -316,8 +322,9 @@
     </section>
   </main>
 
-  <script src="js/supabase.js"></script>
+  <script src="js/supabase.js" ></script>
   <script>
+    //HAY QUE QUITAR SAPABASE.JS!!!
     initSupabaseStorage({
       url: 'https://voopwvocicowmzjvxaey.supabase.co',
       anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvb3B3dm9jaWNvd216anZ4YWV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMTYxOTMsImV4cCI6MjA3MTg5MjE5M30.sYbSaJa7kJSFKFI6Bm29hsJBX3OocAHqmxken3YnAuA'

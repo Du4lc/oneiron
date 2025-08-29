@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <link rel="icon" href="assets/oneiron.ico" type="image/x-icon">
+  <link rel="icon" href="{{ url_for('static', filename='assets/oneiron.ico') }}" type="image/x-icon">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ONEIRON — Inicio</title>
   <style>
@@ -218,7 +218,7 @@
 
     @media (prefers-reduced-motion: reduce){ .orb{animation:none} .drawer{transition:none} }
   </style>
-  <link rel="stylesheet" href="./css/cards.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/cards.css') }}">
 </head>
 <body>
   <div class="dream-bg" aria-hidden="true">
@@ -232,7 +232,7 @@
   <!-- Cabecera visual -->
   <div class="hero" role="img" aria-label="Imagen de cabecera">
     <div class="overlay"></div>
-    <div class="logo"><img alt="ONEIRON" src="./assets/oneiron.png"/></div>
+    <div class="logo"><img alt="ONEIRON" src={{ url_for('static', filename='assets/oneiron.png') }}/></div>
   </div>
 
   <!-- Navegación -->
@@ -314,24 +314,17 @@
 
   <!-- Lógica -->
   <script src="js/supabase.js"></script>
+  <script src="{{ url_for('static', filename='js/supabase.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/countries.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/sectors.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/cards.js') }}"></script>
+
   <script>
     initSupabaseStorage({
       url: 'https://voopwvocicowmzjvxaey.supabase.co',
       anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvb3B3dm9jaWNvd216anZ4YWV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMTYxOTMsImV4cCI6MjA3MTg5MjE5M30.sYbSaJa7kJSFKFI6Bm29hsJBX3OocAHqmxken3YnAuA'
     }).then(() => {
-      const deps = ['js/countries.js', 'js/sectors.js', 'js/cards.js'];
 
-      // Espera a que CARGUEN los 3 scripts
-      return Promise.all(
-        deps.map(src => new Promise((ok, err) => {
-          const s = document.createElement('script');
-          s.src = src;
-          s.onload = ok;
-          s.onerror = err;
-          document.head.appendChild(s);
-        }))
-      );
-    }).then(() => {
       (function(){
         const $ = (id) => document.getElementById(id);
 

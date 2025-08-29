@@ -2,10 +2,13 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <link rel="icon" href="assets/oneiron.ico" type="image/x-icon">
+  <link rel="icon" href="{{ url_for('static', filename='assets/oneiron.ico') }}" type="image/x-icon">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Inicia sesión — ONEIRON</title>
-  <style>
+  
+  <style> 
+
+    /*  ESTO DEBERÍA SER OTRO ARCHIVO */
     :root{
       --bg:#f9fafb;
       --card:#ffffffee;
@@ -152,7 +155,18 @@
   </main>
 
   <script src="js/supabase.js"></script>
+  
+  
   <script>
+
+    //TODO: BORRAR LO DE LA BASE DE DATOS!!! LOS SCRIPTS TAMBIEN APARTE!
+
+
+
+
+
+
+
     initSupabaseStorage({
       url: 'https://voopwvocicowmzjvxaey.supabase.co',
       anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvb3B3dm9jaWNvd216anZ4YWV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMTYxOTMsImV4cCI6MjA3MTg5MjE5M30.sYbSaJa7kJSFKFI6Bm29hsJBX3OocAHqmxken3YnAuA'
