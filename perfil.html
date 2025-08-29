@@ -358,9 +358,9 @@
         <div class="logo-on-banner">
           <img id="logo" alt="Logotipo" src="./assets/oneiron.png">
         </div>
-        <div class="banner-hint" id="banner-hint">1920×440 recomendado</div>
+        <div class="banner-hint" id="banner-hint">1920×216 recomendado</div>
         <div class="uploader">
-          <label class="upl" aria-label="Subir imagen de banner" title="Se recomienda 1920×440 px (formato horizontal)">
+          <label class="upl" aria-label="Subir imagen de banner" title="Se recomienda 1920×216 px (formato horizontal)">
             <input id="banner-input" type="file" accept="image/*">Banner
           </label>
           <label class="upl" aria-label="Subir logotipo">
@@ -702,8 +702,8 @@
         return img;
       }
 
-      // "cover" centrado a 1920x440 y exportado a JPEG ~0.82
-      async function makeBannerDataURL(file, targetW=1920, targetH=440, quality=0.82){
+      // "cover" centrado a 1920x216 y exportado a JPEG ~0.82
+      async function makeBannerDataURL(file, targetW=1920, targetH=216, quality=0.82){
         const img = await readFileAsImage(file);
         const canvas = document.createElement('canvas');
         canvas.width = targetW;
@@ -726,8 +726,8 @@
         const f = bannerInput.files?.[0];
         if(!f) return;
         try{
-          // 1920x440 encaja perfecto con --banner-h: 220px (2x para HiDPI)
-          const data = await makeBannerDataURL(f, 1920, 440, 0.82);
+          // 1920x216 encaja perfecto con --banner-h: 220px (2x para HiDPI)
+          const data = await makeBannerDataURL(f, 1920, 216, 0.82);
           bannerEl.style.backgroundImage = `url(${data})`;
           current.banner = data; // mucho más ligero -> no rompe la cuota
           bannerHint.style.display = 'none'; // 👈 oculta el hint
