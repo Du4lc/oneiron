@@ -313,10 +313,13 @@
   </main>
 
   <!-- Lógica -->
-  <script src="js/supabase.js"></script>
-  <script src="{{ url_for('static', filename='js/supabase.js') }}"></script>
   <script src="{{ url_for('static', filename='js/countries.js') }}"></script>
   <script src="{{ url_for('static', filename='js/sectors.js') }}"></script>
+  <script>
+    window.ONEIRON_DEFAULT_LOGO= "{{ url_for('static', filename= 'assets/oneiron.png') }}";
+    window.ONEIRON_PROFILE_VIE_URL= "{{ url_for('show_file', file_name='perfil-empresa.html')}}"
+  </script>
+  
   <script src="{{ url_for('static', filename='js/cards.js') }}"></script>
 
   <script>

@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <link rel="icon" href="assets/oneiron.ico" type="image/x-icon">
+  <link rel="icon" href="{{ url_for('static', filename= 'assets/oneiron.ico')}}" type="image/x-icon">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ONEIRON — Perfil de empresa</title>
   <style>
@@ -529,7 +529,6 @@
     
   </script>
 
-  <script src="js/supabase.js"></script>
   <script>
     // Lanza la inicialización y guarda la promesa globalmente (por si la necesitas en otras páginas)
     window.__oneironReadyPromise = initSupabaseStorage({
@@ -541,8 +540,9 @@
       // 1) Espera a que localStorage quede parcheado (ya “apunta” a Supabase)
       await window.__oneironReadyPromise;
 
+      const STATIC_BASE = "{{ url_for('static', 'filename='')}}";
       // 2) Carga y espera a países/sectores (si tu inline los usa)
-      const deps = ['js/countries.js', 'js/sectors.js'];
+      const deps = [STATIC_BASE + 'js/countries.js', STATIC_BASE + 'js/sectors.js'];
       for (const src of deps) {
         await new Promise((ok, err) => {
           const s = document.createElement('script');
