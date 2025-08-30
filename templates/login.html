@@ -118,7 +118,7 @@
   <main class="wrap" role="main">
     <section class="card" aria-label="Inicio de sesión">
       <div class="logo" aria-hidden="true">
-        <img src="./assets/oneiron.png" alt="ONEIRON"/>
+        <img src="{{ url_for('static', filename='assets/oneiron.png') }}" alt="ONEIRON" />
       </div>
       <h1 class="title">Inicia sesión</h1>
       <p class="subtitle">Accede a tu cuenta de ONEIRON</p>
@@ -147,14 +147,18 @@
         </div>
 
         <div class="row-actions">
-          <a class="btn ghost" href="./index.html" aria-label="Volver a inicio">Volver</a>
+          <a class="btn ghost" href="{{ url_for('home') }}" aria-label="Volver a inicio">Volver</a>
           <button class="btn" type="submit" id="do-login" disabled>Entrar</button>
         </div>
       </form>
     </section>
   </main>
 
-  <script src="js/supabase.js"></script>
+  <script src="{{ url_for('static', filename='js/supabase.js') }}"></script>
+  <script>
+    // Si en el futuro quitas Supabase, este stub evita errores:
+    window.initSupabaseStorage = window.initSupabaseStorage || (async () => {});
+  </script>
   
   
   <script>

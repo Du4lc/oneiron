@@ -140,7 +140,7 @@
   <main class="wrap" role="main">
     <section class="card" aria-label="Crear cuenta">
       <div class="logo" aria-hidden="true">
-        <img src="./assets/oneiron.png" alt="ONEIRON"/>
+        <img src="{{ url_for('static', filename='assets/oneiron.png') }}" alt="ONEIRON" />
       </div>
       <h1 class="title">Crea tu cuenta</h1>
       <p class="subtitle">Únete a la red de empresas ONEIRON</p>
@@ -181,14 +181,19 @@
         </div>
 
         <div class="row-actions">
-          <a class="btn ghost" href="./index.html" aria-label="Volver a inicio">Volver</a>
+          <a class="btn ghost" href="{{ url_for('home') }}" aria-label="Volver a inicio">Volver</a>
           <button class="btn" type="submit" id="create-account" disabled>Crear cuenta</button>
         </div>
       </form>
     </section>
   </main>
 
-  <script src="js/supabase.js"></script>
+  <script src="{{ url_for('static', filename='js/supabase.js') }}"></script>
+  <script>
+    window.initSupabaseStorage = window.initSupabaseStorage || (async () => {});
+  </script>
+
+
   <script>
     initSupabaseStorage({
       url: 'https://voopwvocicowmzjvxaey.supabase.co',

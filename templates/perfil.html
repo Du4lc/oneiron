@@ -356,7 +356,7 @@
         <div class="banner" id="banner" role="img" aria-label="Imagen de cabecera"></div>
         <div class="banner-overlay"></div>
         <div class="logo-on-banner">
-          <img id="logo" alt="Logotipo" src="./assets/oneiron.png">
+          <img id="logo" alt="Logotipo" src="{{ url_for('static', filename='assets/oneiron.png') }}">
         </div>
         <div class="banner-hint" id="banner-hint">1920×216 recomendado</div>
         <div class="uploader">
@@ -526,21 +526,19 @@
   </div>
 
   <script>
-    
-  </script>
 
-  <script>
+    // Si mañana eliminas Supabase, basta con quitar el init real y dejar el Promise.resolve(); tus toolbars y selects cargan igual.
+
     // Lanza la inicialización y guarda la promesa globalmente (por si la necesitas en otras páginas)
-    window.__oneironReadyPromise = initSupabaseStorage({
-      url: 'https://voopwvocicowmzjvxaey.supabase.co',
-      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvb3B3dm9jaWNvd216anZ4YWV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMTYxOTMsImV4cCI6MjA3MTg5MjE5M30.sYbSaJa7kJSFKFI6Bm29hsJBX3OocAHqmxken3YnAuA'
-    });
+    window.__oneironReadyPromise = (window.initSupabaseStorage
+     ? initSupabaseStorage({ url:'https://voopwvocicowmzjvxaey.supabase.co', anonKey:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvb3B3dm9jaWNvd216anZ4YWV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMTYxOTMsImV4cCI6MjA3MTg5MjE5M30.sYbSaJa7kJSFKFI6Bm29hsJBX3OocAHqmxken3YnAuA' })
+     : Promise.resolve());
 
     (async () => {
       // 1) Espera a que localStorage quede parcheado (ya “apunta” a Supabase)
       await window.__oneironReadyPromise;
 
-      const STATIC_BASE = "{{ url_for('static', 'filename='')}}";
+      const STATIC_BASE = "{{ url_for('static', filename='') }}";
       // 2) Carga y espera a países/sectores (si tu inline los usa)
       const deps = [STATIC_BASE + 'js/countries.js', STATIC_BASE + 'js/sectors.js'];
       for (const src of deps) {
@@ -559,7 +557,7 @@
       const qs = new URLSearchParams(location.search);
       const currentUser = qs.get('user') || 'anon@oneiron';
       const defaultBanner = ''; // usamos gradiente del contenedor
-      const defaultLogo = './assets/oneiron.png';
+      const defaultLogo = "{{ url_for('static', filename='assets/oneiron.png') }}";
 
       function readStore(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)) || {}; }catch{ return {}; } }
       function writeStore(obj){

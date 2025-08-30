@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <link rel="icon" href="{{ url_for('static', filename='assets/oneiron.ico')}}o" type="image/x-icon">
+  <link rel="icon" href="{{ url_for('static', filename='assets/oneiron.ico') }}" type="image/x-icon">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ONEIRON — Perfil de empresa (vista)</title>
   <style>
@@ -331,7 +331,7 @@
       (function(){
         const LS_KEY = 'oneiron_profiles';
         const defaultBanner = ''; // gradiente CSS
-        const defaultLogo = './assets/oneiron.png';
+        const defaultLogo = "{{ url_for('static', filename='assets/oneiron.png') }}";
         const qs = new URLSearchParams(location.search);
         const currentUser = qs.get('user') || 'anon@oneiron';
 
