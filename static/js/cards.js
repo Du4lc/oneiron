@@ -1,7 +1,7 @@
 // ONEIRON: START cards.js
 (function () {
   const LS_KEY = 'oneiron_profiles';
-  const DEFAULT_LOGO = window.ONEIRON_DEFAULT_LOGO || '/static/assets/oneiron.png'; // fallback si no hay logo
+  const DEFAULT_LOGO = './assets/oneiron.png'; // fallback si no hay logo
 
   function escapeHtml(str) {
     return String(str ?? '')
@@ -69,8 +69,7 @@
 
       // Al clicar, ir al perfil en la MISMA pestaña
       card.addEventListener('click', () => {
-        const VIEW_BASE = window.ONEIRON_PROFILE_VIEW_URL || '/perfil-empresa.html';
-        window.location.href = `${VIEW_BASE}?user=${encodeURIComponent(userKey)}`;
+        window.location.href = `/templates/perfil-empresa.html?user=${encodeURIComponent(userKey)}`;
       });
 
       container.appendChild(card);

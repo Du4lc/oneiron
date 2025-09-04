@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <link rel="icon" href="{{ url_for('static', filename='assets/oneiron.ico') }}" type="image/x-icon">
+  <link rel="icon" href="/assets/oneiron.ico" type="image/x-icon">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ONEIRON — Inicio</title>
   <style>
@@ -218,7 +218,7 @@
 
     @media (prefers-reduced-motion: reduce){ .orb{animation:none} .drawer{transition:none} }
   </style>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/cards.css') }}">
+  <link rel="stylesheet" href="/css/cards.css">
 </head>
 <body>
   <div class="dream-bg" aria-hidden="true">
@@ -232,15 +232,13 @@
   <!-- Cabecera visual -->
   <div class="hero" role="img" aria-label="Imagen de cabecera">
     <div class="overlay"></div>
-    <div class="logo">
-      <img alt="ONEIRON" src="{{ url_for('static', filename='assets/oneiron.png') }}">
-    </div>
+    <div class="logo"><img alt="ONEIRON" src="/assets/oneiron.png"/></div>
   </div>
 
   <!-- Navegación -->
   <header>
-    <a class="cta secondary" href="./login.html" aria-label="Iniciar sesión">Iniciar sesión</a>
-    <a class="cta" href="./signup.html" aria-label="Crear cuenta">
+    <a class="cta secondary" href="/templates/login.html" aria-label="Iniciar sesión">Iniciar sesión</a>
+    <a class="cta" href="/templates/signup.html" aria-label="Crear cuenta">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M12 5v14M5 12h14"/>
       </svg>
@@ -314,305 +312,311 @@
     <section id="results" class="results cards"></section>
   </main>
 
-  <!-- Lógica -->
-  <script src="{{ url_for('static', filename='js/countries.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/sectors.js') }}"></script>
+  <script src="/js/supabase.js"></script>
   <script>
-    window.ONEIRON_DEFAULT_LOGO = "{{ url_for('static', filename='assets/oneiron.png') }}";
-    window.ONEIRON_PROFILE_VIEW_URL = "{{ url_for('show_file', file_name='perfil-empresa.html') }}";
-  </script>
-  
-  <script src="{{ url_for('static', filename='js/cards.js') }}"></script>
+    // Lanza la inicialización
+    window.__oneironReadyPromise = initSupabaseStorage();
 
-  <script>
-    (async () => {
-      // 1) Opcional: si supabase.js está presente, inicializa; si no, seguimos igual.
-      try {
-        if (typeof initSupabaseStorage === 'function') {
-          await initSupabaseStorage({
-            url: 'https://voopwvocicowmzjvxaey.supabase.co',
-            anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvb3B3dm9jaWNvd216anZ4YWV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMTYxOTMsImV4cCI6MjA3MTg5MjE5M30.sYbSaJa7kJSFKFI6Bm29hsJBX3OocAHqmxken3YnAuA'
-          });
-        }
-      } catch (_) { /* ignoramos fallos: el UI no depende de esto */ }
+    // Cuando termine, corre tu lógica
+    window.__oneironReadyPromise
+      .then(() => {
+        const deps = ['/js/countries.js','/js/sectors.js','/js/cards.js'];
 
-      // 2) Arranque UI (igual que tenías, pero sin .then)
-      const $ = (id) => document.getElementById(id);
+        // Carga dinámica de scripts
+        return Promise.all(
+          deps.map(src => new Promise((ok, err) => {
+            const s = document.createElement('script');
+            s.src = src;
+            s.onload = ok;
+            s.onerror = err;
+            document.head.appendChild(s);
+          }))
+        );
+      })
+      .then(() => {
+        (function(){
+          const $ = (id) => document.getElementById(id);
+          
+          /* Países / regiones */
+          const country = $('country');
+          const region = $('region');
+          const searchInput = $('search');
 
-      /* Países / regiones */
-      const country = $('country');
-      const region = $('region');
-      const searchInput = $('search');
+          if (window.countryData) {
+            Object.keys(window.countryData).sort().forEach(p => {
+              const opt = document.createElement('option');
+              opt.value = p; opt.textContent = p; country.appendChild(opt);
+            });
 
-      if (window.countryData) {
-        Object.keys(window.countryData).sort().forEach(p => {
-          const opt = document.createElement('option');
-          opt.value = p; opt.textContent = p; country.appendChild(opt);
-        });
+            country.addEventListener('change', () => {
+              const sel = country.value;
+              region.innerHTML = '<option value="" selected>provincia / estado</option>';
+              if (!sel){ 
+                // volver al estado predeterminado
+                region.disabled = true; 
+                applyFilters(); 
+                return; 
+              }
+              window.countryData[sel].forEach(r => {
+                const o = document.createElement('option');
+                o.value = r; o.textContent = r; region.appendChild(o);
+              });
+              region.disabled = false;
+              applyFilters();
+            }, { passive:true });
 
-        country.addEventListener('change', () => {
-          const sel = country.value;
-          region.innerHTML = '<option value="" selected>provincia / estado</option>';
-          if (!sel){
-            // volver al estado predeterminado
-            region.disabled = true;
+            region.addEventListener('change', () => applyFilters(), { passive:true });
+          }
+
+          /* Drawer de etiquetas */
+          const drawer = $('tags-drawer');
+          const overlay = $('drawer-overlay');
+          const tagsBtn = $('add-tags');
+          const drawerClose = $('drawer-close');
+          const drawerSummary = $('drawer-summary');
+          const tagsLabel = $('tags-label');
+          const activeTags = $('active-tags');
+
+          const sectorSelect = $('sector-select');
+          const subSelect = $('subsector-select');
+          const addChipBtn = $('add-chip');
+          const clearBtn = $('drawer-clear');
+
+          // SIN fallback: si falta sectors.js, se deja deshabilitado
+          const sectors = (window.sectorData && typeof window.sectorData === 'object' && Object.keys(window.sectorData).length)
+            ? window.sectorData
+            : null;
+
+          function populateSectors(){
+            sectorSelect.innerHTML = '<option value="" selected disabled>elige un sector…</option>';
+            if (!sectors){
+              sectorSelect.disabled = true;
+              subSelect.innerHTML = '<option value="" selected>elige un subsector…</option>';
+              subSelect.disabled = true;
+              addChipBtn.disabled = true;
+              return;
+            }
+            Object.keys(sectors).forEach(s => {
+              const o = document.createElement('option'); o.value = s; o.textContent = s; sectorSelect.appendChild(o);
+            });
+            sectorSelect.disabled = false;
+            subSelect.innerHTML = '<option value="" selected>elige un subsector…</option>';
+            subSelect.disabled = true;
+            addChipBtn.disabled = false;
+          }
+          populateSectors();
+
+          sectorSelect.addEventListener('change', ()=>{
+            const s = sectorSelect.value;
+            subSelect.innerHTML = '<option value="" selected>elige un subsector…</option>';
+            if(!s){ subSelect.disabled = true; return; }
+            (sectors[s] || []).forEach(sub => {
+              const o = document.createElement('option'); o.value = sub; o.textContent = sub; subSelect.appendChild(o);
+            });
+            subSelect.disabled = false;
+            subSelect.focus();
+          }, { passive:true });
+
+          const selected = new Set();
+
+          function renderActiveTags(){
+            activeTags.innerHTML = '';
+            selected.forEach(tag => {
+              const chip = document.createElement('span');
+              chip.className = 'chip';
+              chip.innerHTML = `${tag} <button class="x" aria-label="Quitar ${tag}" data-tag="${tag}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>`;
+              activeTags.appendChild(chip);
+            });
+          }
+          function updateSummary(){
+            const n = selected.size;
+            drawerSummary.textContent = `${n} etiqueta${n!==1?'s':''} seleccionada${n!==1?'s':''}`;
+            tagsLabel.textContent = n ? `etiquetas (${n})` : 'etiquetas';
+          }
+          function addCurrentSelection(){
+            const sector = sectorSelect.value;
+            const sub = subSelect.value;
+            if(!sector || !sub) return;
+            const label = `${sector}: ${sub}`;
+            if(!selected.has(label)){
+              selected.add(label);
+              renderActiveTags();
+              updateSummary();
+              applyFilters();
+            }
+          }
+
+          addChipBtn.addEventListener('click', addCurrentSelection);
+          activeTags.addEventListener('click', (e)=>{
+            const btn = e.target.closest('button.x');
+            if(!btn) return;
+            const tag = btn.getAttribute('data-tag');
+            selected.delete(tag);
+            renderActiveTags();
+            updateSummary();
             applyFilters();
-            return;
-          }
-          window.countryData[sel].forEach(r => {
-            const o = document.createElement('option');
-            o.value = r; o.textContent = r; region.appendChild(o);
           });
-          region.disabled = false;
-          applyFilters();
-        }, { passive:true });
+          clearBtn.addEventListener('click', ()=>{
+            selected.clear();
+            renderActiveTags();
+            updateSummary();
+            applyFilters();
+          });
 
-        region.addEventListener('change', () => applyFilters(), { passive:true });
-      }
-
-      /* Drawer de etiquetas */
-      const drawer = $('tags-drawer');
-      const overlay = $('drawer-overlay');
-      const tagsBtn = $('add-tags');
-      const drawerClose = $('drawer-close');
-      const drawerSummary = $('drawer-summary');
-      const tagsLabel = $('tags-label');
-      const activeTags = $('active-tags');
-
-      const sectorSelect = $('sector-select');
-      const subSelect = $('subsector-select');
-      const addChipBtn = $('add-chip');
-      const clearBtn = $('drawer-clear');
-
-      // SIN fallback: si falta sectors.js, se deja deshabilitado
-      const sectors = (window.sectorData && typeof window.sectorData === 'object' && Object.keys(window.sectorData).length)
-        ? window.sectorData
-        : null;
-
-      function populateSectors(){
-        sectorSelect.innerHTML = '<option value="" selected disabled>elige un sector…</option>';
-        if (!sectors){
-          sectorSelect.disabled = true;
-          subSelect.innerHTML = '<option value="" selected>elige un subsector…</option>';
-          subSelect.disabled = true;
-          addChipBtn.disabled = true;
-          return;
-        }
-        Object.keys(sectors).forEach(s => {
-          const o = document.createElement('option'); o.value = s; o.textContent = s; sectorSelect.appendChild(o);
-        });
-        sectorSelect.disabled = false;
-        subSelect.innerHTML = '<option value="" selected>elige un subsector…</option>';
-        subSelect.disabled = true;
-        addChipBtn.disabled = false;
-      }
-      populateSectors();
-
-      sectorSelect.addEventListener('change', ()=>{
-        const s = sectorSelect.value;
-        subSelect.innerHTML = '<option value="" selected>elige un subsector…</option>';
-        if(!s){ subSelect.disabled = true; return; }
-        (sectors[s] || []).forEach(sub => {
-          const o = document.createElement('option'); o.value = sub; o.textContent = sub; subSelect.appendChild(o);
-        });
-        subSelect.disabled = false;
-        subSelect.focus();
-      }, { passive:true });
-
-      const selected = new Set();
-
-      function renderActiveTags(){
-        activeTags.innerHTML = '';
-        selected.forEach(tag => {
-          const chip = document.createElement('span');
-          chip.className = 'chip';
-          chip.innerHTML = `${tag} <button class="x" aria-label="Quitar ${tag}" data-tag="${tag}">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>`;
-          activeTags.appendChild(chip);
-        });
-      }
-      function updateSummary(){
-        const n = selected.size;
-        drawerSummary.textContent = `${n} etiqueta${n!==1?'s':''} seleccionada${n!==1?'s':''}`;
-        tagsLabel.textContent = n ? `etiquetas (${n})` : 'etiquetas';
-      }
-      function addCurrentSelection(){
-        const sector = sectorSelect.value;
-        const sub = subSelect.value;
-        if(!sector || !sub) return;
-        const label = `${sector}: ${sub}`;
-        if(!selected.has(label)){
-          selected.add(label);
-          renderActiveTags();
-          updateSummary();
-          applyFilters();
-        }
-      }
-
-      addChipBtn.addEventListener('click', addCurrentSelection);
-      activeTags.addEventListener('click', (e)=>{
-        const btn = e.target.closest('button.x');
-        if(!btn) return;
-        const tag = btn.getAttribute('data-tag');
-        selected.delete(tag);
-        renderActiveTags();
-        updateSummary();
-        applyFilters();
-      });
-      clearBtn.addEventListener('click', ()=>{
-        selected.clear();
-        renderActiveTags();
-        updateSummary();
-        applyFilters();
-      });
-
-      function openDrawer(){
-        drawer.classList.add('open');
-        overlay.classList.add('open');
-        drawer.removeAttribute('aria-hidden');
-        overlay.removeAttribute('aria-hidden');
-        tagsBtn.setAttribute('aria-expanded', 'true');
-        setTimeout(()=>{ sectorSelect.focus(); }, 80);
-      }
-      function closeDrawer(){
-        drawer.classList.remove('open');
-        overlay.classList.remove('open');
-        drawer.setAttribute('aria-hidden','true');
-        overlay.setAttribute('aria-hidden','true');
-        tagsBtn.setAttribute('aria-expanded', 'false');
-        tagsBtn.focus();
-      }
-
-      tagsBtn.addEventListener('click', (ev) => {
-        ev.preventDefault();
-        try {
-          tagsBtn.animate(
-            [{ transform:'translateY(0) scale(1)' },{ transform:'translateY(1px) scale(0.98)' },{ transform:'translateY(0) scale(1)' }],
-            { duration:220, easing:'ease-out' }
-          );
-        } catch(_) {}
-        openDrawer();
-      });
-
-      drawerClose.addEventListener('click', closeDrawer);
-      overlay.addEventListener('click', closeDrawer);
-      window.addEventListener('keydown', (e)=>{
-        if(e.key === 'Escape' && drawer.classList.contains('open')){ closeDrawer(); }
-        if(e.key === 'Enter' && drawer.classList.contains('open')){ addCurrentSelection(); }
-      });
-
-      /* Atajo para enfocar buscador */
-      window.addEventListener('keydown', (e) => {
-        const tagName = document.activeElement?.tagName || '';
-        if(e.key === '/' && !/input|textarea/i.test(tagName) && !drawer.classList.contains('open')){
-          e.preventDefault();
-          searchInput?.focus();
-        }
-      });
-
-      /* Parallax sutil (opcional) */
-      const orbs = Array.from(document.querySelectorAll('.orb'));
-      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      let raf = 0;
-      function onMove(x, y){
-        orbs.forEach((el, i)=>{ const depth = (i+1) * 0.015; el.style.transform = `translate3d(${(x-0.5)*30*depth}px, ${(y-0.5)*30*depth}px, 0)`; });
-      }
-      function handlePointer(evt){
-        if(prefersReduced) return;
-        const { innerWidth:w, innerHeight:h } = window;
-        const pt = evt.touches?.[0] || evt;
-        const x = (pt.clientX ?? w/2) / w;
-        const y = (pt.clientY ?? h/2) / h;
-        cancelAnimationFrame(raf);
-        raf = requestAnimationFrame(()=>onMove(x,y));
-      }
-      window.addEventListener('pointermove', handlePointer, { passive:true });
-      window.addEventListener('touchmove', handlePointer, { passive:true });
-
-      /* ------------ FILTROS EN RESULTADOS ------------ */
-      const resultsEl = $('results');
-
-      function norm(s){
-        return (s||'').toString().normalize('NFD').replace(/\p{Diacritic}+/gu,'').toLowerCase().trim();
-      }
-
-      function getCardData(card){
-        // 1) data-attributes si existen
-        const name = card.dataset.name || card.getAttribute('data-name') || '';
-        const country = card.dataset.country || card.getAttribute('data-country') || '';
-        const regionVal = card.dataset.region || card.getAttribute('data-region') || '';
-        let tagsAttr = card.dataset.tags || card.getAttribute('data-tags') || '';
-
-        let tags = [];
-        if(tagsAttr){
-          try{
-            // puede venir como JSON ["A","B"] o como "A,B"
-            const parsed = JSON.parse(tagsAttr);
-            if(Array.isArray(parsed)) tags = parsed.map(String);
-          }catch{
-            tags = tagsAttr.split(',').map(s=>s.trim()).filter(Boolean);
+          function openDrawer(){
+            drawer.classList.add('open');
+            overlay.classList.add('open');
+            drawer.removeAttribute('aria-hidden');
+            overlay.removeAttribute('aria-hidden');
+            tagsBtn.setAttribute('aria-expanded', 'true');
+            setTimeout(()=>{ sectorSelect.focus(); }, 80);
           }
-        }
+          function closeDrawer(){
+            drawer.classList.remove('open');
+            overlay.classList.remove('open');
+            drawer.setAttribute('aria-hidden','true');
+            overlay.setAttribute('aria-hidden','true');
+            tagsBtn.setAttribute('aria-expanded', 'false');
+            tagsBtn.focus();
+          }
 
-        // 2) Si faltan campos, intenta extraer del contenido
-        const nameFallback = card.querySelector('[data-field="name"]')?.textContent
-                          || card.querySelector('.title, h3, h2')?.textContent
-                          || '';
-        const countryFallback = card.querySelector('[data-field="country"]')?.textContent || '';
-        const regionFallback = card.querySelector('[data-field="region"]')?.textContent || '';
+          tagsBtn.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            try {
+              tagsBtn.animate(
+                [{ transform:'translateY(0) scale(1)' },{ transform:'translateY(1px) scale(0.98)' },{ transform:'translateY(0) scale(1)' }],
+                { duration:220, easing:'ease-out' }
+              );
+            } catch(_) {}
+            openDrawer();
+          });
 
-        if(tags.length === 0){
-          const tagNodes = card.querySelectorAll('[data-tag], .tag, .chip, .badge');
-          tags = Array.from(tagNodes).map(n => (n.getAttribute('data-tag') || n.textContent || '').trim()).filter(Boolean);
-        }
+          drawerClose.addEventListener('click', closeDrawer);
+          overlay.addEventListener('click', closeDrawer);
+          window.addEventListener('keydown', (e)=>{
+            if(e.key === 'Escape' && drawer.classList.contains('open')){ closeDrawer(); }
+            if(e.key === 'Enter' && drawer.classList.contains('open')){ addCurrentSelection(); }
+          });
 
-        return {
-          name: name || nameFallback,
-          country: country || countryFallback,
-          region: regionVal || regionFallback,
-          tags
-        };
-      }
+          /* Atajo para enfocar buscador */
+          window.addEventListener('keydown', (e) => {
+            const tagName = document.activeElement?.tagName || '';
+            if(e.key === '/' && !/input|textarea/i.test(tagName) && !drawer.classList.contains('open')){
+              e.preventDefault();
+              searchInput?.focus();
+            }
+          });
 
-      function cardMatches(card){
-        const q = norm(searchInput?.value || '');
-        const wantCountry = country.value || '';
-        const wantRegion  = region.value || '';
-        const wantedTags = Array.from(selected);
+          /* Parallax sutil */
+          const orbs = Array.from(document.querySelectorAll('.orb'));
+          const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          let raf = 0;
+          function onMove(x, y){
+            orbs.forEach((el, i)=>{ const depth = (i+1) * 0.015; el.style.transform = `translate3d(${(x-0.5)*30*depth}px, ${(y-0.5)*30*depth}px, 0)`; });
+          }
+          function handlePointer(evt){
+            if(prefersReduced) return;
+            const { innerWidth:w, innerHeight:h } = window;
+            const pt = evt.touches?.[0] || evt;
+            const x = (pt.clientX ?? w/2) / w;
+            const y = (pt.clientY ?? h/2) / h;
+            cancelAnimationFrame(raf);
+            raf = requestAnimationFrame(()=>onMove(x,y));
+          }
+          window.addEventListener('pointermove', handlePointer, { passive:true });
+          window.addEventListener('touchmove', handlePointer, { passive:true });
 
-        const { name, country: ctry, region: reg, tags } = getCardData(card);
+          /* ------------ FILTROS EN RESULTADOS ------------ */
 
-        const nameOk = !q || norm(name).includes(q);
-        const countryOk = !wantCountry || norm(ctry) === norm(wantCountry);
-        const regionOk  = !wantRegion  || norm(reg)  === norm(wantRegion);
+          const resultsEl = $('results');
 
-        // Cada etiqueta seleccionada debe estar presente en las etiquetas del card
-        const tagSet = new Set(tags.map(t=>norm(t)));
-        const tagsOk = wantedTags.every(t => tagSet.has(norm(t)));
+          function norm(s){
+            return (s||'').toString().normalize('NFD').replace(/\p{Diacritic}+/gu,'').toLowerCase().trim();
+          }
 
-        return nameOk && countryOk && regionOk && tagsOk;
-      }
+          function getCardData(card){
+            // 1) data-attributes si existen
+            const name = card.dataset.name || card.getAttribute('data-name') || '';
+            const country = card.dataset.country || card.getAttribute('data-country') || '';
+            const regionVal = card.dataset.region || card.getAttribute('data-region') || '';
+            let tagsAttr = card.dataset.tags || card.getAttribute('data-tags') || '';
 
-      function applyFilters(){
-        const cards = resultsEl?.children ? Array.from(resultsEl.children) : [];
-        cards.forEach(card=>{
-          if(!(card instanceof HTMLElement)) return;
-          const show = cardMatches(card);
-          card.style.display = show ? '' : 'none';
-        });
-      }
+            let tags = [];
+            if(tagsAttr){
+              try{
+                // puede venir como JSON ["A","B"] o como "A,B"
+                const parsed = JSON.parse(tagsAttr);
+                if(Array.isArray(parsed)) tags = parsed.map(String);
+              }catch{
+                tags = tagsAttr.split(',').map(s=>s.trim()).filter(Boolean);
+              }
+            }
 
-      // Dispara filtrado al escribir en el buscador
-      searchInput?.addEventListener('input', () => applyFilters());
+            // 2) Si faltan campos, intenta extraer del contenido
+            const nameFallback = card.querySelector('[data-field="name"]')?.textContent
+                              || card.querySelector('.title, h3, h2')?.textContent
+                              || '';
+            const countryFallback = card.querySelector('[data-field="country"]')?.textContent || '';
+            const regionFallback = card.querySelector('[data-field="region"]')?.textContent || '';
 
-      // Si otro script (cards.js) inyecta tarjetas asincrónicamente, observa cambios y aplica filtro
-      const mo = new MutationObserver(() => applyFilters());
-      if(resultsEl) mo.observe(resultsEl, { childList:true, subtree:false });
+            if(tags.length === 0){
+              const tagNodes = card.querySelectorAll('[data-tag], .tag, .chip, .badge');
+              tags = Array.from(tagNodes).map(n => (n.getAttribute('data-tag') || n.textContent || '').trim()).filter(Boolean);
+            }
 
-      // Primer filtrado por si hay contenido inicial
-      applyFilters();
-    })();
+            return {
+              name: name || nameFallback,
+              country: country || countryFallback,
+              region: regionVal || regionFallback,
+              tags
+            };
+          }
+
+          function cardMatches(card){
+            const q = norm(searchInput?.value || '');
+            const wantCountry = country.value || '';
+            const wantRegion  = region.value || '';
+
+            const wantedTags = Array.from(selected);
+
+            const { name, country: ctry, region: reg, tags } = getCardData(card);
+
+            const nameOk = !q || norm(name).includes(q);
+            const countryOk = !wantCountry || norm(ctry) === norm(wantCountry);
+            const regionOk  = !wantRegion  || norm(reg)  === norm(wantRegion);
+
+            // Cada etiqueta seleccionada debe estar presente en las etiquetas del card
+            const tagSet = new Set(tags.map(t=>norm(t)));
+            const tagsOk = wantedTags.every(t => tagSet.has(norm(t)));
+
+            return nameOk && countryOk && regionOk && tagsOk;
+          }
+
+          function applyFilters(){
+            const cards = resultsEl?.children ? Array.from(resultsEl.children) : [];
+            cards.forEach(card=>{
+              // oculta elementos que no son tarjetas (p.ej. placeholders)
+              if(!(card instanceof HTMLElement)) return;
+              const show = cardMatches(card);
+              card.style.display = show ? '' : 'none';
+            });
+          }
+
+          // Dispara filtrado al escribir en el buscador
+          searchInput?.addEventListener('input', () => applyFilters());
+
+          // Si otro script (cards.js) inyecta tarjetas asincrónicamente, observa cambios y aplica filtro
+          const mo = new MutationObserver(() => applyFilters());
+          if(resultsEl) mo.observe(resultsEl, { childList:true, subtree:false });
+
+          // Primer filtrado por si hay contenido inicial
+          applyFilters();
+          
+        })();
+      })
+      .catch(console.error);
   </script>
 
 </body>

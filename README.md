@@ -1,17 +1,35 @@
-Flujo tipico:
+# 🌐 Red Social B2B (MVP con Flask + Supabase)
 
-Abrir server.py y runearlo. Por defecto se mostrará la pagina en
-http://127.0.0.1:5000/ 
-(localhost).
+Este proyecto es un prototipo de **red social B2B** donde las empresas pueden crear un perfil con nombre, descripción, sectores, localización, proyectos y productos.  
 
+El frontend está hecho en **HTML + JS** y servido como estáticos desde Flask.  
+El backend está en **Flask (Python)** y se conecta a **Supabase (Postgres)** para guardar usuarios y perfiles.  
 
-Hay dos ramas una old y otra main, en github.io se mostrara la old NO EQUIVALE A LA MAIN.
+---
 
+## 🚀 Requisitos
 
-Se usa flask un framework que te obliga a estructurar los archivos de cierta manera, CUIDADO al moverlos, da mucho dolor de cabeza (lo digo por experiencia [Claudios me cago en tus archivos js]).
+- Python 3.11+
+- Git
+- Cuenta en [Supabase](https://supabase.com)
 
+---
 
-requirements.txt es un archivo que contiene las versiones y librerias de python necesarias, se suele usar con venv (buscar información) si no usas venv el archivo NO se toca.
+## ⚙️ Instalación y ejecución
 
-Para instalar las librerias necesarias: 
-pip install -r requirements.txt
+1. **Clonar el repo**
+   ```bash
+   git clone https://github.com/tuusuario/tu-repo.git
+   cd tu-repo
+
+2. **Crear entorno virtual**
+    python -m venv .venv
+    source .venv/bin/activate    # Linux/Mac
+    .venv\Scripts\activate       # Windows
+
+3. **Instalar dependencias**
+    pip install -r requirements.txt
+
+4. **Ejecutar servidor**
+    python api.py
+    Abre en http://localhost:5000

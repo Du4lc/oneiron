@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <link rel="icon" href="{{ url_for('static',filename='assets/oneiron.ico')}}" type="image/x-icon">
+  <link rel="icon" href="/assets/oneiron.ico" type="image/x-icon">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ONEIRON — Crear cuenta</title>
   <style>
@@ -140,7 +140,7 @@
   <main class="wrap" role="main">
     <section class="card" aria-label="Crear cuenta">
       <div class="logo" aria-hidden="true">
-        <img src="{{ url_for('static', filename='assets/oneiron.png') }}" alt="ONEIRON" />
+        <img src="/assets/oneiron.png" alt="ONEIRON"/>
       </div>
       <h1 class="title">Crea tu cuenta</h1>
       <p class="subtitle">Únete a la red de empresas ONEIRON</p>
@@ -181,24 +181,19 @@
         </div>
 
         <div class="row-actions">
-          <a class="btn ghost" href="{{ url_for('home') }}" aria-label="Volver a inicio">Volver</a>
+          <a class="btn ghost" href="/" aria-label="Volver a inicio">Volver</a>
           <button class="btn" type="submit" id="create-account" disabled>Crear cuenta</button>
         </div>
       </form>
     </section>
   </main>
 
-  <script src="{{ url_for('static', filename='js/supabase.js') }}"></script>
+  <script src="/js/supabase.js"></script>
   <script>
-    window.initSupabaseStorage = window.initSupabaseStorage || (async () => {});
-  </script>
 
+    window.__oneironReadyPromise = initSupabaseStorage();
+    window.__oneironReadyPromise.then(() => {
 
-  <script>
-    initSupabaseStorage({
-      url: 'https://voopwvocicowmzjvxaey.supabase.co',
-      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvb3B3dm9jaWNvd216anZ4YWV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMTYxOTMsImV4cCI6MjA3MTg5MjE5M30.sYbSaJa7kJSFKFI6Bm29hsJBX3OocAHqmxken3YnAuA'
-    }).then(() => {
       const email = document.getElementById('email');
       const pass1 = document.getElementById('password');
       const pass2 = document.getElementById('password2');
@@ -206,43 +201,51 @@
       const msg = document.getElementById('match-msg');
       const emailExistsMsg = document.getElementById('email-exists');
 
-      const LS_KEY = 'oneiron_profiles';
-
-      function emailAlreadyExists(value){
-        try{
-          const store = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
-          return !!store[value];
-        }catch{ return false; }
+      async function emailAlreadyExists(value) {
+        const res = await fetch(`/api/check-email?email=${encodeURIComponent(value)}`, {
+          credentials: 'include'
+        });
+        if (!res.ok) return false;
+        const data = await res.json();
+        return data.exists; // true o false según backend
       }
 
-      function updateEmailExistsUI(){
+      async function updateEmailExistsUI() {
         const value = email.value.trim();
-        const exists = value && emailAlreadyExists(value);
-        if(exists){
+        if (!value) {
+          emailExistsMsg.style.display = 'none';
+          emailExistsMsg.textContent = '';
+          return false;
+        }
+        const exists = await emailAlreadyExists(value);
+        if (exists) {
           emailExistsMsg.style.display = '';
           emailExistsMsg.textContent = 'Este correo ya está registrado. Inicia sesión o usa otro correo.';
-        }else{
+        } else {
           emailExistsMsg.style.display = 'none';
           emailExistsMsg.textContent = '';
         }
         return exists;
       }
 
-      function validate(){
+      async function validate() {
         const allFilled = email.value.trim() && pass1.value && pass2.value;
         const matches = pass1.value === pass2.value && pass2.value.length > 0;
-        const exists = updateEmailExistsUI();
+        const exists = await updateEmailExistsUI();
 
-        pass2.classList.remove('match-ok','match-err');
-        msg.textContent = ''; msg.classList.remove('ok','err');
+        pass2.classList.remove('match-ok', 'match-err');
+        msg.textContent = '';
+        msg.classList.remove('ok', 'err');
 
-        if(pass2.value.length){
-          if(matches){
+        if (pass2.value.length) {
+          if (matches) {
             pass2.classList.add('match-ok');
-            msg.textContent = 'Las contraseñas coinciden.'; msg.classList.add('ok');
+            msg.textContent = 'Las contraseñas coinciden.';
+            msg.classList.add('ok');
           } else {
             pass2.classList.add('match-err');
-            msg.textContent = 'Ambas contraseñas no son iguales.'; msg.classList.add('err');
+            msg.textContent = 'Ambas contraseñas no son iguales.';
+            msg.classList.add('err');
           }
         }
 
@@ -250,10 +253,11 @@
         createBtn.disabled = !(allFilled && matches) || exists;
       }
 
+
       ['input','blur','keyup','change'].forEach(evt=>{
-        email.addEventListener(evt, validate);
-        pass1.addEventListener(evt, validate);
-        pass2.addEventListener(evt, validate);
+        email.addEventListener(evt, () => validate());
+        pass1.addEventListener(evt, () => validate());
+        pass2.addEventListener(evt, () => validate());
       });
 
       // Mostrar contraseña mientras se mantiene pulsado
@@ -272,33 +276,33 @@
       attachPeek('toggle-pass', pass1);
       attachPeek('toggle-pass2', pass2);
 
-      document.getElementById('signup-form').addEventListener('submit', (e)=>{
+      document.getElementById('signup-form').addEventListener('submit', async (e)=>{
         e.preventDefault();
         const value = email.value.trim();
-        if(!value) { alert('Introduce un correo.'); email.focus(); return; }
+        const passVal = pass1.value;
 
-        // Si ya existe, notifica y no crea/ni redirige
-        if(emailAlreadyExists(value)){
-          updateEmailExistsUI();
-          alert('Este correo ya está registrado. Inicia sesión o usa otro correo.');
-          email.focus();
+        const res = await fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ email: value, password: passVal })
+        });
+
+        if (!res.ok) {
+          const err = await res.text();
+          alert('No se pudo crear la cuenta: ' + err);
           return;
         }
 
-        // Crear perfil vacío en localStorage (sólo si no existía)
-        const store = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
-        if(!store[value]) {
-          store[value] = { name:'', desc:'', tags:[], country:'', region:'', banner:'', logo:'' };
-          localStorage.setItem(LS_KEY, JSON.stringify(store));
-        }
-
-        // Redirige al perfil con el email en la URL
-        location.href = `./perfil.html?user=${encodeURIComponent(value)}`;
+        // Éxito → redirigir al perfil
+        location.href = '/templates/perfil.html';
       });
 
       // Validación inicial por si el navegador autocompleta
       validate();
+
     }).catch(console.error);
+
   </script>
 
 </body>

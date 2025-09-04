@@ -1,2 +1,26 @@
+# Entornos virtuales
+.venv/
+venv/
+ENV/
+
+# Archivos de entorno y secretos
 .env
-venv
+*.env
+
+# Archivos de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Archivos de logs
+*.log
+
+# Archivos temporales de sistemas operativos
+.DS_Store
+Thumbs.db
+
+# Archivos de IDEs
+.vscode/
+.idea/
+*.iml

@@ -2,13 +2,10 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <link rel="icon" href="{{ url_for('static', filename='assets/oneiron.ico') }}" type="image/x-icon">
+  <link rel="icon" href="/assets/oneiron.ico" type="image/x-icon">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Inicia sesión — ONEIRON</title>
-  
-  <style> 
-
-    /*  ESTO DEBERÍA SER OTRO ARCHIVO */
+  <style>
     :root{
       --bg:#f9fafb;
       --card:#ffffffee;
@@ -118,7 +115,7 @@
   <main class="wrap" role="main">
     <section class="card" aria-label="Inicio de sesión">
       <div class="logo" aria-hidden="true">
-        <img src="{{ url_for('static', filename='assets/oneiron.png') }}" alt="ONEIRON" />
+        <img src="/assets/oneiron.png" alt="ONEIRON"/>
       </div>
       <h1 class="title">Inicia sesión</h1>
       <p class="subtitle">Accede a tu cuenta de ONEIRON</p>
@@ -147,34 +144,19 @@
         </div>
 
         <div class="row-actions">
-          <a class="btn ghost" href="{{ url_for('home') }}" aria-label="Volver a inicio">Volver</a>
+          <a class="btn ghost" href="/" aria-label="Volver a inicio">Volver</a>
           <button class="btn" type="submit" id="do-login" disabled>Entrar</button>
         </div>
       </form>
     </section>
   </main>
 
-  <script src="{{ url_for('static', filename='js/supabase.js') }}"></script>
-  <script>
-    // Si en el futuro quitas Supabase, este stub evita errores:
-    window.initSupabaseStorage = window.initSupabaseStorage || (async () => {});
-  </script>
-  
-  
+  <script src="/js/supabase.js"></script>
   <script>
 
-    //TODO: BORRAR LO DE LA BASE DE DATOS!!! LOS SCRIPTS TAMBIEN APARTE!
+    window.__oneironReadyPromise = initSupabaseStorage();
+    window.__oneironReadyPromise.then(() => {
 
-
-
-
-
-
-
-    initSupabaseStorage({
-      url: 'https://voopwvocicowmzjvxaey.supabase.co',
-      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvb3B3dm9jaWNvd216anZ4YWV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMTYxOTMsImV4cCI6MjA3MTg5MjE5M30.sYbSaJa7kJSFKFI6Bm29hsJBX3OocAHqmxken3YnAuA'
-    }).then(() => {
       const email = document.getElementById('email');
       const pass = document.getElementById('password');
       const loginBtn = document.getElementById('do-login');
@@ -203,24 +185,27 @@
       }
       attachPeek('toggle-pass', pass);
 
-      document.getElementById('login-form').addEventListener('submit', (e)=>{
+      document.getElementById('login-form').addEventListener('submit', async (e)=>{
         e.preventDefault();
-        const emailVal = email.value.trim();
-        if(!emailVal){ alert('Introduce tu correo.'); return; }
-        const LS_KEY = 'oneiron_profiles';
-        const store = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
-        if(!store[emailVal]){
-          alert('No encontramos una cuenta con ese correo. Crea una cuenta primero.');
-          return;
-        }
-        location.href = `./perfil.html?user=${encodeURIComponent(emailVal)}`;
+        const emailVal = document.getElementById('email').value.trim();
+        const passVal  = document.getElementById('password').value;
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ email: emailVal, password: passVal })
+        });
+        if (!res.ok) { alert('Credenciales no válidas'); return; }
+        location.href = '/templates/perfil.html';
       });
 
       document.getElementById('forgot').addEventListener('click', (e)=>{
         e.preventDefault();
         alert('Funcionalidad de recuperación pendiente de backend. Aquí iría el flujo de reset.');
       });
+
     }).catch(console.error);
+
   </script>
 
 </body>

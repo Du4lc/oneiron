@@ -2,16 +2,10 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <link rel="icon" href="{{ url_for('static', filename='assets/oneiron.ico') }}" type="image/x-icon">
+  <link rel="icon" href="/assets/oneiron.ico" type="image/x-icon">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ONEIRON — Perfil de empresa (vista)</title>
   <style>
-
-    /*ESTO TAMBÍEN DEBERIA SER OTRO ARCHIVO, Y LA MAYORIA DE <script>*/
-
-
-
-
     :root{
       /* Paleta y tokens iguales que perfil.html */
       --bg:#f7f9fc; --card:#ffffffee; --glass:#ffffffb8; --soft:#f3f6fb80; --stroke:#d1d9e680; --text:#0f172a; --muted:#6b7280;
@@ -180,9 +174,7 @@
   <div class="banner-wrap" id="banner-wrap">
     <div class="banner" id="banner" role="img" aria-label="Imagen de cabecera"></div>
     <div class="banner-overlay"></div>
-    <div class="logo-on-banner">
-      <img id="logo" alt="Logotipo" src="{{ url_for('static', filename='assets/oneiron.png') }}">
-    </div>
+    <div class="logo-on-banner"><img id="logo" alt="Logotipo" src="/assets/oneiron.png"></div>
     <button id="share-link" class="share-btn" title="Compartir perfil" type="button" aria-label="Compartir">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
@@ -196,7 +188,7 @@
   <aside class="sidebar" aria-label="Índice">
     <div class="side-title">Navegación</div>
     <nav class="side-nav" id="side-nav">
-      <a class="btn-link btn-primary" href="{{ url_for('home') }}" title="Volver al inicio">
+      <a class="btn-link btn-primary" href="/" title="Volver al inicio">
         <span class="left">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9"/><path d="M9 21V9h6v12"/></svg>
           Inicio
@@ -325,251 +317,161 @@
   </main>
 
   <script>
-  (async () => {
-    // 1) No dependas de supabase.js: si existe, ok; si no, seguimos igual
-    try {
-      if (typeof initSupabaseStorage === 'function') {
-        await initSupabaseStorage({
-          url: 'https://voopwvocicowmzjvxaey.supabase.co',
-          anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvb3B3dm9jaWNvd216anZ4YWV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMTYxOTMsImV4cCI6MjA3MTg5MjE5M30.sYbSaJa7kJSFKFI6Bm29hsJBX3OocAHqmxken3YnAuA'
+
+    // Script para PERFIL-EMPRESA
+    (async () => {
+      // 1) Carga países y sectores
+      const deps = ['/js/countries.js', '/js/sectors.js'];
+      for (const src of deps) {
+        await new Promise((ok, err) => {
+          const s = document.createElement('script');
+          s.src = src;
+          s.onload = ok;
+          s.onerror = err;
+          document.head.appendChild(s);
         });
       }
-    } catch (_) { /* vista de solo lectura, ignoramos */ }
 
-    // 2) Utils de rutas y storage
-    const STATIC_BASE = "{{ url_for('static', filename='') }}";
-    const DEFAULT_LOGO = "{{ url_for('static', filename='assets/oneiron.png') }}";
-    const DEFAULT_BANNER = ''; // gradiente CSS
-    const STORE_KEYS = ['oneiron_profiles', 'profiles', 'oneiron_profiles_v2']; // tolera varias claves
-
-    function normalizeAssetPath(p) {
-      if (!p) return '';
-      if (p.startsWith('http://') || p.startsWith('https://') || p.startsWith('/')) return p;
-      if (p.startsWith('./assets/')) return STATIC_BASE + p.slice(2);
-      if (p.startsWith('assets/'))   return STATIC_BASE + p;
-      return p;
-    }
-    function readAnyStore() {
-      for (const k of STORE_KEYS) {
-        try {
-          const raw = localStorage.getItem(k);
-          if (raw) {
-            const obj = JSON.parse(raw);
-            if (obj && typeof obj === 'object') return obj;
-          }
-        } catch {}
-      }
-      return {};
-    }
-    function getParamUser() {
+      // 2) Obtener usuario a mostrar → viene en querystring ?user=...
       const qs = new URLSearchParams(location.search);
-      return qs.get('user') || qs.get('u') || qs.get('email') || '';
-    }
-    function findKeyLoose(store, key) {
-      if (!key) return '';
-      if (store[key]) return key; // match exacto
-      // match sin mayúsculas/minúsculas
-      const low = key.toLowerCase();
-      const hit = Object.keys(store).find(k => k.toLowerCase() === low);
-      if (hit) return hit;
-      // admite que hayas pasado el email URL-encoded
-      try {
-        const dec = decodeURIComponent(key);
-        if (store[dec]) return dec;
-        const hit2 = Object.keys(store).find(k => k.toLowerCase() === dec.toLowerCase());
-        if (hit2) return hit2;
-      } catch {}
-      return '';
-    }
-    // migra esquemas antiguos a uno común esperado por la vista
-    function normalizeProfile(p = {}) {
-      const out = {
-        name: p.name || p.nombre || '',
-        desc: p.desc || p.descripcion || '',
-        tags: Array.isArray(p.tags) ? p.tags
-            : Array.isArray(p.sectores) ? p.sectores
-            : [],
-        country: p.country || p.pais || '',
-        region: p.region || p.provincia || p.estado || '',
-        banner: normalizeAssetPath(p.banner || p.cabecera || ''),
-        logo: normalizeAssetPath(p.logo || p.logotipo || ''),
-        proyectos: Array.isArray(p.proyectos) ? p.proyectos : [],
-        productos: Array.isArray(p.productos) ? p.productos : []
-      };
-      // Normaliza items (proyectos/productos)
-      const fixItems = arr => arr.map(it => ({
-        titulo: it.titulo || it.title || 'Sin título',
-        descripcion: it.descripcion || it.desc || '',
-        imagenes: Array.isArray(it.imagenes) ? it.imagenes.map(normalizeAssetPath)
-                : Array.isArray(it.images)   ? it.images.map(normalizeAssetPath)
-                : []
-      }));
-      out.proyectos = fixItems(out.proyectos);
-      out.productos = fixItems(out.productos);
-      return out;
-    }
+      const currentUser = qs.get('user');
+      if (!currentUser) {
+        alert("Falta parámetro ?user en la URL");
+        location.href = "/";
+        return;
+      }
 
-    // 3) Intenta cargar desde backend (/api/profile/<email>) y si no, desde localStorage
-    async function fetchServerProfile(email) {
-      try {
-        if (!email) return null;
-        const res = await fetch(`/api/profile/${encodeURIComponent(email)}`, { headers: { 'Accept':'application/json' } });
+      // 3) Cargar perfil desde backend
+      async function loadProfile(email) {
+        const res = await fetch(`/api/profiles/${encodeURIComponent(email)}`, { credentials: 'include' });
         if (!res.ok) return null;
         const data = await res.json();
-        if (data && typeof data === 'object' && Object.keys(data).length) return data;
-      } catch (_) {}
-      return null;
-    }
+        return data.data || {};
+      }
 
-    const store = readAnyStore();
-    let userKey = getParamUser();
-    // si no vino ?user, coge el primero del store
-    if (!userKey) {
-      const keys = Object.keys(store);
-      if (keys.length) userKey = keys[0];
-    }
-    // intenta casar la clave con el store (case-insensitive, decoded)
-    const storeKey = findKeyLoose(store, userKey) || userKey;
+      const current = await loadProfile(currentUser);
 
-    // 4) Carga perfil (servidor -> localStorage -> vacío)
-    let rawProfile = await fetchServerProfile(storeKey);
-    if (!rawProfile) rawProfile = store[storeKey] || {};
+      if (!current) {
+        alert("Perfil no encontrado");
+        return;
+      }
 
-    const current = normalizeProfile(rawProfile);
+      // 4) Helpers (igual que antes)
+      function sanitizeHtml(input) {
+        const allowedTags = new Set(['P','DIV','SPAN','STRONG','B','EM','I','U','UL','OL','LI','BR','BLOCKQUOTE','H1','H2','H3','H4','H5','H6','A','IMG']);
+        const allowedAttrs = new Set(['href','src','alt','title']);
+        const tmp = document.createElement('div');
+        tmp.innerHTML = String(input || '');
 
-    // 5) Render
-    const bannerEl = document.getElementById('banner');
-    const logoEl   = document.getElementById('logo');
+        tmp.querySelectorAll('*').forEach(el => {
+          if (!allowedTags.has(el.tagName)) {
+            el.replaceWith(...el.childNodes);
+            return;
+          }
+          [...el.attributes].forEach(attr => {
+            if (!allowedAttrs.has(attr.name.toLowerCase())) {
+              el.removeAttribute(attr.name);
+            }
+            if (attr.name === 'href' && !/^https?:\/\//i.test(attr.value)) {
+              el.removeAttribute('href');
+            }
+            if (attr.name === 'src' && !/^data:image\/|https?:\/\//i.test(attr.value)) {
+              el.removeAttribute('src');
+            }
+          });
+        });
 
-    const nameView   = document.getElementById('company-name-view');
-    const descView   = document.getElementById('company-desc-view');
-    const wordCount  = document.getElementById('desc-count');
-    const countryEl  = document.getElementById('country-view');
-    const regionEl   = document.getElementById('region-view');
-    const tagsWrap   = document.getElementById('active-tags');
-    const proyectosList = document.getElementById('proyectos-list');
-    const productosList = document.getElementById('productos-list');
-    const projCount  = document.getElementById('projCount');
-    const prodCount  = document.getElementById('prodCount');
+        return tmp.innerHTML;
+      }
 
-    // Banner y logo
-    bannerEl.style.backgroundImage = current.banner ? `url(${current.banner})` : DEFAULT_BANNER;
-    logoEl.src = current.logo || DEFAULT_LOGO;
-    logoEl.alt = 'logo ' + (current.name || 'Empresa');
+      function countWordsFromHTML(html) {
+        const txt = (html||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+        return txt ? txt.split(' ').length : 0;
+      }
 
-    // Nombre
-    nameView.textContent = (current.name || '').trim() || 'Empresa sin nombre';
+      // 5) Renderizar
+      const bannerEl = document.getElementById('banner');
+      const logoEl = document.getElementById('logo');
+      const nameView = document.getElementById('company-name-view');
+      const descView = document.getElementById('company-desc-view');
+      const wordCountEl = document.getElementById('desc-count');
+      const countryView = document.getElementById('country-view');
+      const regionView  = document.getElementById('region-view');
+      const tagsWrap = document.getElementById('active-tags');
+      const proyectosList = document.getElementById('proyectos-list');
+      const productosList = document.getElementById('productos-list');
+      const projCount = document.getElementById('projCount');
+      const prodCount = document.getElementById('prodCount');
 
-    // Descripción (permite HTML simple ya saneado por tu editor; si necesitas, añade sanitizador como antes)
-    const plainWords = String(current.desc || '').replace(/<[^>]+>/g,' ').trim().split(/\s+/).filter(Boolean);
-    wordCount.textContent = `${plainWords.length} / 1000 palabras`;
-    wordCount.style.color = plainWords.length > 1000 ? 'var(--err)' : 'var(--muted)';
-    descView.innerHTML = current.desc || '<p class="muted">Sin descripción</p>';
+      const defaultBanner = '';
+      const defaultLogo = './assets/oneiron.png';
 
-    // Localización
-    countryEl.textContent = current.country || '—';
-    regionEl.textContent  = current.region  || '—';
+      // Banner y logo
+      bannerEl.style.backgroundImage = current.banner ? `url(${current.banner})` : defaultBanner;
+      logoEl.src = current.logo || defaultLogo;
 
-    // Etiquetas
-    tagsWrap.innerHTML = '';
-    (current.tags || []).forEach(t => {
-      if (!t || !String(t).trim()) return;
-      const chip = document.createElement('span');
-      chip.className = 'chip';
-      chip.textContent = String(t).trim();
-      tagsWrap.appendChild(chip);
-    });
-    if (!tagsWrap.children.length) {
-      const m = document.createElement('span'); m.className = 'muted'; m.textContent = 'Sin etiquetas';
-      tagsWrap.appendChild(m);
-    }
+      // Nombre
+      nameView.textContent = (current.name || '').trim() || 'Empresa sin nombre';
 
-    // Render helpers
-    function cardHTML(item){
-      const imagesHTML = item.imagenes && item.imagenes.length
-        ? `<div class="gallery-row">${item.imagenes.map(src => `<img src="${src}" alt="">`).join('')}</div>`
-        : '';
-      return `
-        <div class="section-bd">
-          <div class="item-head">
-            <div class="item-title">${item.titulo || 'Sin título'}</div>
-            <small class="muted">${(item.imagenes?.length||0)} foto(s)</small>
+      // Descripción
+      descView.innerHTML = sanitizeHtml(current.desc || '<p class="muted">Sin descripción</p>');
+      const nWords = countWordsFromHTML(current.desc || '');
+      wordCountEl.textContent = `${nWords} / 1000 palabras`;
+      wordCountEl.style.color = nWords > 1000 ? 'var(--err)' : 'var(--muted)';
+
+      // Localización
+      countryView.textContent = current.country || '—';
+      regionView.textContent = current.region || '—';
+
+      // Etiquetas
+      tagsWrap.innerHTML = '';
+      (Array.isArray(current.tags) ? current.tags : []).forEach(tag => {
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.textContent = tag;
+        tagsWrap.appendChild(chip);
+      });
+      if (!tagsWrap.children.length) {
+        const m = document.createElement('span'); m.className='muted'; m.textContent='Sin etiquetas';
+        tagsWrap.appendChild(m);
+      }
+
+      // Items: solo mostrar (sin botones de editar/borrar)
+      function cardHTML(item){
+        const imagesHTML = (item.imagenes && item.imagenes.length)
+          ? `<div class="gallery-row">${item.imagenes.map(src=>`<img src="${src}" alt="">`).join('')}</div>`
+          : '';
+        const htmlDesc = sanitizeHtml(item.descripcion || '');
+        return `
+          <div class="section-bd">
+            <div class="item-head">
+              <div class="item-title">${item.titulo || 'Sin título'}</div>
+              <small class="muted">${(item.imagenes?.length||0)} foto(s)</small>
+            </div>
+            ${imagesHTML}
+            <div class="item-desc">${htmlDesc}</div>
           </div>
-          ${imagesHTML}
-          <div class="item-desc">${item.descripcion || ''}</div>
-        </div>`;
-    }
-    function appendCard(listEl, item){
-      const card = document.createElement('article');
-      card.className = 'card';
-      card.style.marginTop = '8px';
-      card.innerHTML = cardHTML(item);
-      listEl.appendChild(card);
-    }
+        `;
+      }
+      function appendCard(listEl, item){
+        const card = document.createElement('article');
+        card.className = 'card';
+        card.style.marginTop = '8px';
+        card.innerHTML = cardHTML(item);
+        listEl.appendChild(card);
+      }
+      (current.proyectos||[]).forEach(p => appendCard(proyectosList, p));
+      (current.productos||[]).forEach(p => appendCard(productosList, p));
+      projCount.textContent = (current.proyectos?.length||0) ? `${current.proyectos.length} elemento(s)` : 'Sin elementos';
+      prodCount.textContent = (current.productos?.length||0) ? `${current.productos.length} elemento(s)` : 'Sin elementos';
 
-    proyectosList.innerHTML = '';
-    productosList.innerHTML = '';
-    (current.proyectos || []).forEach(p => appendCard(proyectosList, p));
-    (current.productos || []).forEach(p => appendCard(productosList, p));
-    projCount.textContent = (current.proyectos?.length || 0) ? `${current.proyectos.length} elemento(s)` : 'Sin elementos';
-    prodCount.textContent = (current.productos?.length || 0) ? `${current.productos.length} elemento(s)` : 'Sin elementos';
-    if(!(current.proyectos?.length)) proyectosList.innerHTML = '<div class="muted">Sin proyectos</div>';
-    if(!(current.productos?.length)) productosList.innerHTML = '<div class="muted">Sin productos</div>';
+      if (!(current.proyectos?.length)) proyectosList.innerHTML = '<div class="muted">Sin proyectos</div>';
+      if (!(current.productos?.length)) productosList.innerHTML = '<div class="muted">Sin productos</div>';
 
-    // Scroll con offset del banner (igual que ya tenías)
-    function getBannerHeight(){
-      const v = getComputedStyle(document.documentElement).getPropertyValue('--banner-h').trim();
-      const n = parseInt(v, 10);
-      return isNaN(n) ? 0 : n;
-    }
-    const navLinks = Array.from(document.querySelectorAll('.side-nav a[href^="#"]'));
-    document.querySelectorAll('.side-nav a[href^="#"]').forEach(a=>{
-      a.addEventListener('click', (e)=>{
-        const href = a.getAttribute('href');
-        e.preventDefault();
-        const id = href.slice(1);
-        const el = document.getElementById(id);
-        if(!el) return;
-        const y = el.getBoundingClientRect().top + window.scrollY - getBannerHeight();
-        window.scrollTo({ top: y, behavior: 'smooth' });
-      });
-    });
-    const sections = ['sec-nombre','sec-desc','sec-tags','sec-local','sec-proyectos','sec-productos'];
-    const obs = new IntersectionObserver((entries)=>{
-      entries.forEach(entry=>{
-        const id = entry.target.id;
-        const link = navLinks.find(a=> a.getAttribute('href') === '#'+id);
-        if(!link) return;
-        if(entry.isIntersecting){
-          navLinks.forEach(l=> l.classList.remove('active'));
-          link.classList.add('active');
-        }
-      });
-    }, { rootMargin: `-${getBannerHeight()+20}px 0px -60% 0px`, threshold: 0.1 });
-    sections.forEach(id=>{
-      const el = document.getElementById(id);
-      if(el) obs.observe(el);
-    });
+      console.log("Perfil-empresa renderizado:", currentUser);
+    }).catch(console.error);
 
-    // Compartir
-    document.getElementById('share-link')?.addEventListener('click', async (e)=>{
-      e.preventDefault();
-      const url = location.origin + location.pathname + '?user=' + encodeURIComponent(storeKey);
-      try {
-        if (navigator.share) {
-          await navigator.share({ title: 'Perfil — ' + (current.name || 'Empresa'), url });
-        } else {
-          await navigator.clipboard.writeText(url);
-          alert('Enlace copiado al portapapeles');
-        }
-      } catch {}
-    });
-
-    // DEBUG opcional: comenta si no lo necesitas
-    console.debug('[perfil-empresa] user param:', getParamUser(), '→ storeKey:', storeKey);
-    console.debug('[perfil-empresa] store keys:', Object.keys(store));
-  })();
-</script>
+  </script>
 
 </body>
 </html>
