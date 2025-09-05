@@ -1,7 +1,7 @@
 // ONEIRON: START cards.js
 (function () {
   const LS_KEY = 'oneiron_profiles';
-  const DEFAULT_LOGO = './assets/oneiron.png'; // fallback si no hay logo
+  const DEFAULT_LOGO = '/assets/oneiron.png'; // fallback si no hay logo
 
   function escapeHtml(str) {
     return String(str ?? '')
