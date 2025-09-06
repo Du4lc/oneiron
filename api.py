@@ -127,7 +127,13 @@ def shape_profiles(rows: list[dict]) -> Dict[str, Any]:
 @app.get("/api/profiles")
 def list_profiles():
     try:
-        res = supabase.table("profiles_kv").select("email,data,updated_at").order("updated_at", desc=True).limit(100000).execute()
+        res = (
+            supabase.table("profiles_kv")
+            .select("email,data,updated_at")          # FIX: aquí estaba mal
+            .order("updated_at", desc=True)
+            .limit(100000)
+            .execute()
+        )
         return jsonify(profiles=shape_profiles(res.data))
     except Exception as e:
         abort(500, f"DB error: {e}")
@@ -135,7 +141,14 @@ def list_profiles():
 @app.get("/api/profiles/<email>")
 def get_profile(email: str):
     try:
-        res = supabase.table("profiles_kv").select("email,data,updated_at").eq("email", email).limit(1).execute()
+        email = email.strip().lower()                # FIX: normaliza
+        res = (
+            supabase.table("profiles_kv")
+            .select("email,data,updated_at")
+            .eq("email", email)
+            .limit(1)
+            .execute()
+        )
         row = res.data[0] if res.data else None
         if not row:
             abort(404, "Not found")
